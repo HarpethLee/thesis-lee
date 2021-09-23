@@ -1,0 +1,56 @@
+---
+title: "KPCA Test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rhdf5)
+```
+
+```{r}
+rhdf5::h5ls("/Users/johnlee/fused data/fused_tp-00000_ch-0_st-0_ang-h270-v90_obj-left_cam-left_etc.lux.h5")
+```
+
+```{r}
+image <- h5read("/Users/johnlee/fused data/fused_tp-00000_ch-0_st-0_ang-h270-v90_obj-left_cam-left_etc.lux.h5",
+       name = "Data_2_2_2")
+```
+
+```{r}
+image <- image[,,12]
+```
+
+```{r}
+library(kernlab)
+```
+```{r}
+image_pca <- pca(image)
+```
+
+```{r}
+image_kpca <- kpca(image, kernel = "rbfdot")
+```
+
+
+```{r}
+pca_recon <- t(as.matrix(image_pca$rotated[1:10])%*%as.matrix(t(image_pca$loadings[1:10])))
+```
+
+```{r}
+kpca_recon <- pcv(image_kpca)[,1:10]%*%t((t(rotated(image_kpca))[,1:10]))
+```
+Might be using LASSO to decide how many principal components to use.
+
+```{r}
+library(sparsepca)
+```
+
+```{r}
+image_spca <- spca(image, max_iter = 100, alpha = 0.5)
+```
+
+Combination of KPCA and SPCA.

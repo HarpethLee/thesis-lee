@@ -1,0 +1,17 @@
+---
+title: "Journal"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+To do List
+1. Find data
+2. Read chapter 2 of Advances in PCA
+3. Learn more about R packages.
+
+Look into combinations of SPCA and KPCA. Would the transformations applied during KPCA make PCs too hard to interpret or could we find meaningful interpretations of a small number of variables under a transformation.
+
+KPCA works best with large amount of data fairly evenly distributed along the manifold.

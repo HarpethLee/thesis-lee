@@ -1,0 +1,31 @@
+---
+title: "MSD Open"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rhdf5)
+```
+
+```{r}
+h5ls("/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5")
+```
+
+```{r}
+analysis <- h5read("/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5",
+       name = "/analysis")
+```
+
+```{r}
+metadata <- h5read("/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5",
+                   name = "/metadata")
+```
+
+```{r}
+dim(analysis$segments_pitches)
+```
+

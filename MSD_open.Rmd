@@ -80,3 +80,12 @@ analysis_list <- lapply(mss_files, function(x){
 })
 ```
 
+```{r}
+song_info <- data.frame(analysis_list[[1]]$songs)
+
+for(i in 2:length(analysis_list)) {
+  new_row <- analysis_list[[i]]$songs
+  song_info <- rbind(song_info, new_row)
+}
+```
+

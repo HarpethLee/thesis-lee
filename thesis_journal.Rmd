@@ -18,3 +18,5 @@ Look into combinations of SPCA and KPCA. Would the transformations applied durin
 KPCA works best with large amount of data fairly evenly distributed along the manifold.
 
 I was able to find a few (I think 3) papers on Sparse Kernel PCA (SKPCA). Performs KPCA but adds a penalty similar to LASSO in order to give sparser PCs.
+
+Look into other ways to penalize model complexity and test them with SPCA/SKPCA.

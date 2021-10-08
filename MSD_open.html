@@ -168,8 +168,17 @@ pre code {
 </div>
 
 
-<pre class="r"><code>library(rhdf5)</code></pre>
-<pre class="r"><code>h5ls(&quot;/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;)</code></pre>
+<pre class="r"><code>library(rhdf5)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>h5ls(&quot;MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;)</code></pre>
 <pre><code>##           group                       name       otype   dclass      dim
 ## 0             /                   analysis   H5I_GROUP                  
 ## 1     /analysis            bars_confidence H5I_DATASET    FLOAT       89
@@ -198,12 +207,80 @@ pre code {
 ## 24 /musicbrainz              artist_mbtags H5I_DATASET   STRING        0
 ## 25 /musicbrainz        artist_mbtags_count H5I_DATASET  INTEGER        0
 ## 26 /musicbrainz                      songs H5I_DATASET COMPOUND        1</code></pre>
-<pre class="r"><code>analysis &lt;- h5read(&quot;/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;,
+<pre class="r"><code>analysis &lt;- h5read(&quot;MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;,
        name = &quot;/analysis&quot;)</code></pre>
-<pre class="r"><code>metadata &lt;- h5read(&quot;/Users/johnlee/Downloads/MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;,
+<pre class="r"><code>metadata &lt;- h5read(&quot;MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;,
                    name = &quot;/metadata&quot;)</code></pre>
+<pre class="r"><code>musicbrain &lt;- h5read(&quot;MillionSongSubset/A/Y/Y/TRAYYBD128F9335F7A.h5&quot;,
+                   name = &quot;/musicbrainz&quot;)</code></pre>
 <pre class="r"><code>dim(analysis$segments_pitches)</code></pre>
 <pre><code>## [1]  12 620</code></pre>
+<p>Given that the dimension of factors in <code>analysis</code> will widely vary depending on the song, should we try to find a way to project data into some n dimensions or find a way to start working with info for songs with same dimensionality (e.g. only work with values stored under <code>song</code> in the <code>analysis</code> section).</p>
+<pre class="r"><code>h5ls(&quot;MillionSongSubset/B/F/S/TRBFSEX128F9300418.h5&quot;)</code></pre>
+<pre><code>##           group                       name       otype   dclass      dim
+## 0             /                   analysis   H5I_GROUP                  
+## 1     /analysis            bars_confidence H5I_DATASET    FLOAT       79
+## 2     /analysis                 bars_start H5I_DATASET    FLOAT       79
+## 3     /analysis           beats_confidence H5I_DATASET    FLOAT      561
+## 4     /analysis                beats_start H5I_DATASET    FLOAT      561
+## 5     /analysis        sections_confidence H5I_DATASET    FLOAT        8
+## 6     /analysis             sections_start H5I_DATASET    FLOAT        8
+## 7     /analysis        segments_confidence H5I_DATASET    FLOAT      864
+## 8     /analysis      segments_loudness_max H5I_DATASET    FLOAT      864
+## 9     /analysis segments_loudness_max_time H5I_DATASET    FLOAT      864
+## 10    /analysis    segments_loudness_start H5I_DATASET    FLOAT      864
+## 11    /analysis           segments_pitches H5I_DATASET    FLOAT 12 x 864
+## 12    /analysis             segments_start H5I_DATASET    FLOAT      864
+## 13    /analysis            segments_timbre H5I_DATASET    FLOAT 12 x 864
+## 14    /analysis                      songs H5I_DATASET COMPOUND        1
+## 15    /analysis          tatums_confidence H5I_DATASET    FLOAT     1122
+## 16    /analysis               tatums_start H5I_DATASET    FLOAT     1122
+## 17            /                   metadata   H5I_GROUP                  
+## 18    /metadata               artist_terms H5I_DATASET   STRING        6
+## 19    /metadata          artist_terms_freq H5I_DATASET    FLOAT        6
+## 20    /metadata        artist_terms_weight H5I_DATASET    FLOAT        6
+## 21    /metadata            similar_artists H5I_DATASET   STRING      100
+## 22    /metadata                      songs H5I_DATASET COMPOUND        1
+## 23            /                musicbrainz   H5I_GROUP                  
+## 24 /musicbrainz              artist_mbtags H5I_DATASET   STRING        0
+## 25 /musicbrainz        artist_mbtags_count H5I_DATASET  INTEGER        0
+## 26 /musicbrainz                      songs H5I_DATASET COMPOUND        1</code></pre>
+<pre class="r"><code>md2 &lt;- h5read(&quot;MillionSongSubset/B/F/S/TRBFSEX128F9300418.h5&quot;,
+       name = &quot;metadata&quot;)</code></pre>
+<pre class="r"><code>analysis2 &lt;- h5read(&quot;MillionSongSubset/B/F/S/TRBFSEX128F9300418.h5&quot;,
+                    name = &quot;/analysis&quot;)</code></pre>
+<pre class="r"><code>in_folder &lt;- function(folder) {
+  lapply(list.files(folder), function(x) {paste(folder, x, sep = &quot;/&quot;)})
+}</code></pre>
+<pre class="r"><code>mss1 &lt;- lapply(in_folder(&quot;MillionSongSubset&quot;), in_folder)</code></pre>
+<pre class="r"><code>mss2 &lt;- lapply(mss1[[1]], in_folder)</code></pre>
+<pre class="r"><code>mss3 &lt;- lapply(mss2[[1]], in_folder)</code></pre>
+<pre class="r"><code>mss_files &lt;- unlist(mss3)</code></pre>
+<pre class="r"><code>analysis_list &lt;- lapply(mss_files, function(x){
+  h5read(x,
+         name = &quot;/analysis&quot;)
+})</code></pre>
+<pre class="r"><code>song_info &lt;- data.frame(analysis_list[[1]]$songs)
+
+for(i in 2:length(analysis_list)) {
+  new_row &lt;- analysis_list[[i]]$songs
+  song_info &lt;- rbind(song_info, new_row)
+}</code></pre>
+<p>Should we leave confidence variables in?</p>
+<pre class="r"><code>song_info &lt;- select(song_info, -c(analysis_sample_rate,
+                                  audio_md5,
+                                  key,
+                                  key_confidence,
+                                  mode,
+                                  mode_confidence,
+                                  time_signature,
+                                  time_signature_confidence,
+                                  track_id
+                                  ))</code></pre>
+<pre class="r"><code>song_info_alt &lt;- song_info[, colSums(song_info != 0) &gt; 0]</code></pre>
+<pre class="r"><code>dim(song_info_alt)</code></pre>
+<pre><code>## [1] 319   5</code></pre>
+<p>Looks like most of the variables don’t contain any information as they are all 0. Since this is in the subset they offer, I am going to guess that this problem persists throughout most if not all of the data set. In order to use this data, we will probably have to find some way to standardize song specific data.</p>
 
 
 

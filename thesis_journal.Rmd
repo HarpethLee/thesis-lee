@@ -11,7 +11,9 @@ To do List
 1. Find data
 2. Read chapter 2 of Advances in PCA
 3. Learn more about R packages.
-4. Open Million Song Dataset in R/Python
+4. Figure out which variables from songs to keep
+5. Connect spyder to pip
+6. Audio interface in R
 
 Look into combinations of SPCA and KPCA. Would the transformations applied during KPCA make PCs too hard to interpret or could we find meaningful interpretations of a small number of variables under a transformation.
 

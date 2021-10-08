@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(rhdf5)
+library(dplyr)
 ```
 
 ```{r}
@@ -89,3 +90,27 @@ for(i in 2:length(analysis_list)) {
 }
 ```
 
+Should we leave confidence variables in?
+
+```{r}
+song_info <- select(song_info, -c(analysis_sample_rate,
+                                  audio_md5,
+                                  key,
+                                  key_confidence,
+                                  mode,
+                                  mode_confidence,
+                                  time_signature,
+                                  time_signature_confidence,
+                                  track_id
+                                  ))
+```
+
+```{r}
+song_info_alt <- song_info[, colSums(song_info != 0) > 0]
+```
+
+```{r}
+dim(song_info_alt)
+```
+
+Looks like most of the variables don't contain any information as they are all 0. Since this is in the subset they offer, I am going to guess that this problem persists throughout most if not all of the data set. In order to use this data, we will probably have to find some way to standardize song specific data.

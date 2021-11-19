@@ -38,3 +38,177 @@ Look into how different methods of sparse principal component analysis effect th
 Maybe start by testing SPCR using SPCArt as a method for generating sparse principal components.
 
 This blog feed back [https://archive.ics.uci.edu/ml/datasets/BlogFeedback] data set from the UCI repository might work, lots of attributes.
+
+
+```{r}
+library(spcr)
+
+spcr <- spcr(as.matrix(train[1:50,1:280]), train[1:50,281], 5,
+                lambda.B = 2.5, lambda.gamma = 2.5)
+```
+
+`spcr` function from the `spcr` package works to perform SPCR in R.
+[https://cran.r-project.org/web/packages/spcr/spcr.pdf]
+
+
+```{r}
+test_preds <- as.matrix(test[,1:280])
+test_resp <- as.matrix(test[, 281])
+pcs <- test_preds%*%spcr$loadings.B
+```
+
+```{r}
+resp <- apply(pcs, 1, function(x) {
+  crossprod(x, spcr$gamma)
+})
+sum(resid^2)/length(resid)
+```
+
+```{r}
+spcr2 <- spcr(as.matrix(train[1:50,1:280]), train[1:50,281], 10,
+                lambda.B = 2.5, lambda.gamma = 2.5)
+```
+
+```{r}
+pcs2 <- test_preds%*%spcr2$loadings.B
+
+resp2 <- apply(pcs2, 1, function(x) {
+  crossprod(x, spcr2$gamma)
+})
+
+resid2 <- test_resp - resp2
+sum(resid2^2)/length(resid2)
+```
+
+```{r}
+spcr_resid <- function(k = 5, lambda.B = 0.5, lambda.gamma = 0.5) {
+ 
+  spcr_model <- spcr(as.matrix(train[1:50,1:280]), train[1:50,281], k,
+                lambda.B, lambda.gamma = 2.5)
+
+  prin_comps <- test_preds%*%spcr_model$loadings.B%*%spcr_model$gamma + spcr_model$gamma0
+
+  resp <- prin_comps
+
+  resid <- test_resp - resp
+  sum(resid^2)/length(resid) 
+}
+```
+
+```{r}
+spcr_resid2 <- function(k = 5, lambda.B = 0.5, lambda.gamma = 0.5, w = 0.1, xi = 0.01) {
+ 
+  spcr_model <- spcr(as.matrix(train[1:50,1:280]), train[1:50,281], k,
+                lambda.B, lambda.gamma = 2.5)
+
+  ##Problem here with reconstructing principle components will look more closely at the algorithm
+  prin_comps <- as.matrix(train[1:50,1:280])%*%spcr_model$loadings.B%*%spcr_model$gamma
+
+  resp <- prin_comps + spcr_model$gamma0
+
+  resid <- train[1:50,281] - resp
+  sum(resid^2)/length(resid) 
+}
+```
+
+```{r}
+plot(1:10, lapply(1:10, function(a){spcr_resid2(a)}))
+```
+I'm not sure what is going on as it seems that including more principle components decreases model performance on the training data I should look into whether or not this is a problem with the function's implementation or a feature that SPCR can sometimes exhibit.
+
+
+Look into partial least squares, try cross validation with data.
+
+
+```{r}
+library(pls)
+```
+
+```{r}
+model1 <- plsr(as.matrix(train[1:100,281])~as.matrix(train[1:100,1:280]),
+               ncomp = 25,
+               data = train,
+               validation = "CV")
+```
+
+
+```{r}
+plot(RMSEP(model1), legendpos = "topright")
+```
+```{r}
+model2 <- plsr(as.matrix(train[1:200,281])~as.matrix(train[1:200,1:280]),
+               ncomp = 25,
+               data = train,
+               validation = "CV",
+               sclae = TRUE)
+```
+
+```{r}
+plot(RMSEP(model2), legendpos = "topright")
+```
+
+```{r}
+model3 <- plsr(Y~.,
+               ncomp = 25,
+               data = train_scale,
+               validation = "CV")
+```
+
+```{r}
+plot(RMSEP(model3), legendpos = "topright")
+```
+
+```{r}
+mdl3_preds <- predict(model3, ncomp = 10, newdata = test_preds)
+```
+
+```{r}
+mdl3_resids <- mdl3_preds[,1,1]- test$Y
+```
+
+```{r}
+plot(x = test_resp, y = mdl3_resids)
+```
+```{r}
+plot(RMSEP(model3, newdata = test))
+```
+
+```{r}
+pcr_model <- pcr(Y~.,
+               ncomp = 25,
+               data = train,
+               validation = "CV")
+```
+```{r}
+plot(RMSEP(pcr_model))
+```
+```{r}
+pcr_preds <- predict(pcr_model, ncomp = 10, newdata = test_preds)
+```
+
+```{r}
+pcr_resids <- pcr_preds[,1,1]- test$Y
+```
+
+```{r}
+plot(x = test_resp, y = pcr_resids)
+```
+```{r}
+plot(RMSEP(model3, newdata = test))
+```
+```{r}
+test_scale <- lapply(1:281, function(x){
+  scale(test[,x])
+})
+
+test_scale <- as.data.frame.list(test_scale)
+```
+
+
+```{r}
+library(dplyr)
+test_scale <- test_scale %>%
+    select_if(~ !any(is.na(.)))
+```
+
+Problem with scaling the variables, looks like smaller subsets will have predictors which only take one value meaning they can't be scaled.

@@ -147,31 +147,6 @@ model2 <- plsr(as.matrix(train[1:200,281])~as.matrix(train[1:200,1:280]),
 plot(RMSEP(model2), legendpos = "topright")
 ```
 
-```{r}
-model3 <- plsr(Y~.,
-               ncomp = 25,
-               data = train_scale,
-               validation = "CV")
-```
-
-```{r}
-plot(RMSEP(model3), legendpos = "topright")
-```
-
-```{r}
-mdl3_preds <- predict(model3, ncomp = 10, newdata = test_preds)
-```
-
-```{r}
-mdl3_resids <- mdl3_preds[,1,1]- test$Y
-```
-
-```{r}
-plot(x = test_resp, y = mdl3_resids)
-```
-```{r}
-plot(RMSEP(model3, newdata = test))
-```
 
 ```{r}
 pcr_model <- pcr(Y~.,
@@ -193,22 +168,136 @@ pcr_resids <- pcr_preds[,1,1]- test$Y
 ```{r}
 plot(x = test_resp, y = pcr_resids)
 ```
+
+
+
+
+Problem with scaling the variables, looks like smaller subsets will have predictors which only take one value meaning they can't be scaled. Scale test set based on results from the training set.
+
+Find a way to save mean and variance of the training data and then use those to scale the test data.
+
+
+## Code for Scaling Test+Training Data
+
 ```{r}
-plot(RMSEP(model3, newdata = test))
-```
-```{r}
-test_scale <- lapply(1:281, function(x){
-  scale(test[,x])
+train_means <- apply(train[,1:280], 2, function(x){
+  c(mean(x),var(x))
 })
-
-test_scale <- as.data.frame.list(test_scale)
 ```
 
+
+```{r}
+train_scale <- train
+
+for(i in 1:ncol(train_means)) {
+  if(train_means[2,i]==0)
+     train_scale[,i] <- rep(NA, times = nrow(train))
+  else
+    train_scale[,i] <- (train[,i]-train_means[1,i])/train_means[2,i]
+}
+```
 
 ```{r}
 library(dplyr)
+train_scale <- train_scale %>%
+    select_if(~ !any(is.na(.)))
+```
+
+```{r}
+test_scale <- test
+
+for(i in 1:ncol(train_means)) {
+  if(train_means[2,i]==0)
+     test_scale[,i] <- rep(NA, times = nrow(test))
+  else
+    test_scale[,i] <- (test[,i]-train_means[1,i])/train_means[2,i]
+}
+```
+
+```{r}
 test_scale <- test_scale %>%
     select_if(~ !any(is.na(.)))
 ```
 
-Problem with scaling the variables, looks like smaller subsets will have predictors which only take one value meaning they can't be scaled.
+
+For some reason the variance of `X13` is 0 in the training data but not in the scaled training data. I should probably restart the process of scaling and building the model. Will have to remove variables from the training data. Possible that variable names were shifted at some point.
+
+
+
+
+```{r}
+model3 <- plsr(Y~.,
+               ncomp = 25,
+               data = train_scale,
+               validation = "CV")
+```
+
+```{r}
+plot(RMSEP(model3), legendpos = "topright")
+```
+
+```{r}
+mdl3_preds <- predict(model3, ncomp = 10, newdata = test_scale)
+```
+
+```{r}
+mdl3_resids <- mdl3_preds[,1,1]- test$Y
+```
+
+```{r}
+plot(x = test_resp, y = mdl3_resids)
+```
+
+```{r}
+plot(RMSEP(model3, newdata = test_scale))
+```
+
+```{r}
+model4 <- pcr(Y~.,
+               ncomp = 25,
+               data = train_scale,
+               validation = "CV")
+```
+
+```{r}
+plot(RMSEP(model4))
+plot(RMSEP(model4, newdata = test_scale))
+```
+
+## Linear Model With Highly Correlated Variables
+
+```{r}
+train_corr <- as.data.frame(apply(train_scale, 2, function(x){cor(x, y = train_scale$Y)}))
+```
+
+```{r}
+train_corr <- train_corr[order(train_corr[,1],decreasing=TRUE),,drop = FALSE]
+```
+
+```{r}
+lm_1 <- lm(Y~X10, train)
+```
+
+```{r}
+library(caret)
+cv_func <- function(x){
+  train.control <- trainControl(method = "cv", number = 100)
+  
+  model <- train(Y~x, data = train, method = "lm",
+               trControl = train.control)
+}
+```
+
+
+```{r}
+apply(cv_func, c(X10, X20, X6, X5, X11, X14, X19))
+```
+
+
+Figure out how to order while saving variable names
+
+
+
+Try LASSO, Ridge, maybe some other techniques. Look at residual plots. Try with smaller groups of predictors, maybe most correlated.
+
+Circumstances when methodology works best, use data more as example than focus.

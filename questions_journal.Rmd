@@ -27,3 +27,8 @@ Function $tr\{\}$ is trace of matrix.
 Why do PCR/SPCR models sometimes have a higher valued principle components that end up explaining a large amount of variance in the predictor? Why don't these show up sooner?
 
 I am a bit confused as to how PLS compares to PCR. Why doesn't it minimize a matrix equation? 
+
+
+Way to impose $L_1$ norm or something similar without needing to find matrix inverse, max/min problem.
+
+PLS with variable selection, e.g variable selection occurs and then model is built instead of folding variable selection into algorithm for building model.

@@ -33,13 +33,25 @@ $$
 
 Consider the case where $r=1$, 
 
-$n=1, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 1$, $n=2, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 0.7854$, $n=5, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 0.1645$, $n=10, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 2.49*10^{-3}$, $n=25, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 2.854*10^{-11}$, $n=100, \frac{\text{Vol}(B)}{\text{Vol}(C)} = 1.868*10^{-70}$.
+```{r}
+library(gt)
+
+ratio_df <- data.frame(n = c(1,2,5,10,25,100), Ratio = c('1', '0.7854', '0.1645', '2.49*e-3', '2.854e-11', '1.868e-70'))
+
+gt(ratio_df)
+```
+
 
 Thus, we can expect the number of points within distance 1 of a point will decrease as the dimension of data increases.
 
-Another problem that arises from high dimensional data is computational time. The computation complexity of fitting a linear regression model to an $n\times p$ matrix of predictors is $𝑂(𝑛𝑝^2+𝑝^3)$ (many programs will not perform the full matrix inversion so the complexity is usually smaller). This will quickly balloon for large $p$. $2^p$ possible combinations e.g. finding correlation between all predictors. Harder to sample.
+Another problem that arises from high dimensional data is computational time. The computation complexity of fitting a linear regression model to an $n\times p$ matrix of predictors is $O(np^2+p^3)$ (many programs will not perform the full matrix inversion so the complexity is usually smaller). This will quickly balloon for large $p$. More troubling in high dimensions is that for $p$ predictors, there are $2^p$ possible combinations of predictors making techniques such as $\textit{Best Subset Selection}$ computationally prohibitive.
+
+## Principal Component Analysis
+
+  Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
 
   Sections to add
   PCA +Linear Regression?
   PCR
   PLS
+  $L^1$ Sparsification

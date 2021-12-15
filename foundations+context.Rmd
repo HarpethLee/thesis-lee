@@ -49,6 +49,7 @@ Another problem that arises from high dimensional data is computational time. Th
 ## Principal Component Analysis
 
   Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
+    PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. 
 
   Sections to add
   PCA +Linear Regression?

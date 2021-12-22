@@ -44,15 +44,46 @@ gt(ratio_df)
 
 Thus, we can expect the number of points within distance 1 of a point will decrease as the dimension of data increases.
 
-Another problem that arises from high dimensional data is computational time. The computation complexity of fitting a linear regression model to an $n\times p$ matrix of predictors is $O(np^2+p^3)$ (many programs will not perform the full matrix inversion so the complexity is usually smaller). This will quickly balloon for large $p$. More troubling in high dimensions is that for $p$ predictors, there are $2^p$ possible combinations of predictors making techniques such as $\textit{Best Subset Selection}$ computationally prohibitive.
+Another problem that arises from high dimensional data is computational time. The computation complexity of fitting a linear regression model to an $n\times p$ matrix of predictors is $O(np^2+p^3)$ (many programs will not perform the full matrix inversion so the complexity is usually smaller in practice however the general principle of computational complexity increasing holds). This will quickly balloon for large $p$. More troubling in high dimensions is that for $p$ predictors, there are $2^p$ possible combinations of predictors making techniques such as $\textit{Best Subset Selection}$ computationally prohibitive.
 
 ## Principal Component Analysis
 
   Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
-    PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. 
+    PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$.
+    The algorithm for finding the first principal component of a standardized $n \times p$ data matrix $\textbf{X}$ is as follows:
+$$
+\textbf{w}_1 = \text{argmax}_{||\textbf{w}||=1} \Big\{ \textbf{w}^T \textbf{X}^T\textbf{X} \textbf{w} \Big\}
+$$
+Note that $\textbf{X}^T\textbf{X}$ is the covariance matrix for $\textbf{X}$. For all following components, we will find the matrix $\hat{\textbf{X}}_k$ such that all variance explained by the first $k-1$ principal components is removed. This is done by finding
+$$
+\hat{\textbf{X}}_k = \textbf{X} - \sum_{j = 1}^{k-1} \textbf{X} \textbf{w}_j \textbf{w}_j^T
+$$
+We then use the same equation used to find $\textbf{w}_1$ to find the $k$th principle component, replacing $\textbf{X}$ with $\hat{\textbf{X}}_k$.
+  Note that principal components can often be used for latent variables.
+  
+## Linear Regression
 
+  Linear regression is perhaps the most commonly used regression method given its simplicity and that it often yields fairly well performing models. Many other regression techniques use linear regression as a foundation. Linear regression works to find the line in $n$ space that minimizes the Mean Squared Error (the squared distance between the line and observed data). The MSE is used in order to ensure that there is a unique answer. In linear regression we are looking for terms $\beta_0,...,\beta_n$ such that
+$$
+\sum_{i=1}^p (y_i - \hat{y_i})^2
+$$
+is minimized where
+$$
+\hat{y} = \beta_0 + \beta_1 \cdot x_1 + ... + \beta_n x_n
+$$
+Note that we are working with a $n+1 \times p$ data frame with $n$ predictors, 1 response variable, and $p$ observations. \bigskip
+
+We can find the vector of regression coefficients $\boldsymbol{\beta}$ using linear algebra by solving the equation 
+$$
+\boldsymbol{\beta} = (\textbf{X}^T \textbf{X})^{-1} \textbf{X} \textbf{Y}
+$$
+where $\textbf{X}$ is an $n \times p$ matrix of predictors and $\textbf{Y}$ is a $1 \times p$ matrix of the response variable.
+ 
+ 
   Sections to add
   PCA +Linear Regression?
   PCR
   PLS
   $L^1$ Sparsification
+  
+  Write about data

@@ -103,5 +103,17 @@ Partial Least Square (PLS) is a regression technique with similarities to PCR. U
   PCR
   PLS
   $L^1$ Sparsification
+  PLS1 and PLS2 + algorithms
+  Multivariate regression
   
   Write about data
+  
+  
+## Why Partial Least Squares?
+
+Regression models that use latent variables can help with the curse of dimensionality when building models for high dimensional data. When $n < p$ (the number of predictors is larger than the sample size) or $n \approx p$ many traditional regression methods will lose predictive power as they become increasingly susceptible to noise in the data. For example, using single variate least squares regression when $n < p$ is extremely likely to over fit the data. Furthermore, solutions that minimize the squared error will no longer be unique.
+
+Models that use latent variables will be able to avoid this problem by projecting the data into a lower dimensional feature space so that $n >p$. Since we project from the full feature space less information about the data will be lost than by simply performing variable selection.
+
+Sparse partial least squares further mitigates problems of over fitting the data as it...
+

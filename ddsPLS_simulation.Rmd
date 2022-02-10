@@ -72,11 +72,23 @@ n_B <- 100
 
 # Creates model using ddsPLS algorithm
 model_toy <- ddsPLS(simu_toy$X,simu_toy$Y,
+                    doBoot = FALSE,
                    lambdas = lambdas,
                    n_B = n_B,
                    verbose = T # whether trace during process
                    )
 ```
+
+```{r}
+model_toy_2 <- ddsPLS(simu_toy$X,simu_toy$Y,
+                      doBoot = FALSE,
+                  criterion = "Q2",
+                   lambdas = lambdas,
+                   n_B = n_B,
+                   verbose = T # whether trace during process
+                   )
+```
+
 
 ## Design 1
 
@@ -124,6 +136,32 @@ model_1 <- ddsPLS(simu_1$X,simu_1$Y,
 ```
 ```{r}
 model_1_Q2 <- ddsPLS(simu_1$X,simu_1$Y,
+                  criterion = "Q2",
+                  lambdas = lambdas,
+                  n_B=n_B,
+                  verbose=T)
+
+model_1_lambda <- ddsPLS(simu_1$X, simu_1$Y,
+                         criterion = "Q2",
+                         lambdas = seq(0,1,length.out = 100),
+                         n_B = n_B,
+                         verbose = T)
+
+model_1_lambda_2 <- ddsPLS(simu_1$X, simu_1$Y,
+                         criterion = "Q2",
+                         lambdas = seq(0,1,length.out = 50),
+                         n_B = n_B,
+                         verbose = T)
+```
+
+## Different Simulations of Design 1 Data
+
+
+There is a problem with `get_design_1`, `q` cannot take values other than 5.
+```{r, eval=FALSE}
+data_1 <- get_design_1(n = 100, p = 1000, q = 5)
+
+ddsPLS(data_1$X,data_1$Y,
                   criterion = "Q2",
                   lambdas = lambdas,
                   n_B=n_B,

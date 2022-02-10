@@ -78,6 +78,24 @@ $$
 \boldsymbol{\beta} = (\textbf{X}^T \textbf{X})^{-1} \textbf{X} \textbf{Y}
 $$
 where $\textbf{X}$ is an $n \times p$ matrix of predictors and $\textbf{Y}$ is a $1 \times p$ matrix of the response variable.
+
+
+## Principal Component Regression
+
+Principal Component Regression (PCR) is a regression technique that uses principal components as predictors. To perform PCR, one first finds the desired number of principal components and then performs linear regression using the selected principal components as predictors. Letting $\textbf{w}_1, \textbf{w}_2,...,\textbf{w}_k$ be the first $k$ principal components of our predictors $\textbf{X}$. This will take the form 
+$$
+\textbf{y} = \theta_0 + \sum_{i = 1}^k \theta_i \textbf{w}_i
+$$
+where
+$$
+\theta_i = \frac{\langle \textbf{w}_i, \textbf{y} \rangle}{\langle \textbf{w}_i, \textbf{w}_i \rangle}
+$$
+For high dimensional data, PCR can avoid problems of over fitting that occur with a large number of predictors. Furthermore, it can provide more interpretable models if the principal components can be linked to latent variables. PCR does have some drawbacks, since principal components only depend on variance within predictors, PCR can miss predictors that contribute little to variance among predictors but stronly explain variance among the response variable.
+
+
+## Partial Least Square
+
+Partial Least Square (PLS) is a regression technique with similarities to PCR. Unlike PCR, PLS consider covariance among predictors as to avoid redundancy here. This allows it to make more accurate predictions than PCR when using models of the same complexity.
  
  
   Sections to add

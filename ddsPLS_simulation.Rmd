@@ -1,0 +1,132 @@
+---
+title: "ddsPLS Exploration"
+author: "Harpeth Lee"
+date: "2/4/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(ddsPLS2)
+```
+
+
+```{r, eval=FALSE}
+ddsPLS2::ddsPLS2_App()
+```
+
+This code chunk opens an applet that can be used to build models using ddsPLS. Note that it requires the $X$ and $Y$ variables as separate csv files.
+
+
+Code copied from the [simulation_ssdpls2 repository](https://github.com/hlorenzo/simulation_ddspls) created by Hadrien Lorenzo.
+```{r, include=FALSE}
+get_toy_example <- function(n=50,sqrt_1_minus_sig2=0.95,p=1000){
+  # Structure
+  repX <- 50
+  A <- sqrt_1_minus_sig2*matrix(c(rep(1,repX),rep(0,p-repX)),nrow = 1,byrow = T)
+  D <- sqrt_1_minus_sig2*matrix(1,nrow = 1,byrow = T)
+  # Observations
+  d <- ncol(A)+nrow(A)+ncol(D)
+  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
+  phi <- psi[,1:nrow(A),drop=F]
+  epsilonX_info <- psi[,nrow(A)+1:repX]*sqrt(1-sqrt_1_minus_sig2^2)
+  epsilonX_noise <- psi[,nrow(A)+repX+1:(ncol(A)-repX)]
+  epsilonY_info <- psi[,nrow(A)+ncol(A)+1,drop=F]*sqrt(1-sqrt_1_minus_sig2^2)
+  # X and Y
+  X <- phi%*%A + cbind(epsilonX_info,epsilonX_noise)
+  Y <- phi%*%D + epsilonY_info
+  list(X=X,Y=Y)
+}
+```
+
+
+```{r}
+# Creates a toy data set for the ddsPLS function
+toy_ex <- get_toy_example()
+```
+
+```{r}
+# Creates model from the toy data
+toy_mod <- ddsPLS(toy_ex$X, toy_ex$Y)
+
+toy_results <- toy_mod$results
+```
+
+
+## Recreate Toy Example
+
+This is a recreation of the toy example created by Hadrien Lorenzo, the original example can be found [here](http://htmlpreview.github.io/?https://github.com/hlorenzo/simulation_ddspls/blob/main/simulation_ddspls.html).
+
+```{r, message=TRUE}
+# Creates toy data set to be used
+simu_toy <- get_toy_example(n=50,sqrt_1_minus_sig2 = 0.9025,p = 1000)
+
+# Creates vector of lambda values to be used
+lambdas <- seq(0,1,length.out = 30)
+
+# Sets number of bootstrap samples to run
+n_B <- 100
+
+# Creates model using ddsPLS algorithm
+model_toy <- ddsPLS(simu_toy$X,simu_toy$Y,
+                   lambdas = lambdas,
+                   n_B = n_B,
+                   verbose = T # whether trace during process
+                   )
+```
+
+## Design 1
+
+```{r, include=FALSE}
+get_design_1 <- function(n=50,sqrt_1_minus_sig2=0.99,p=1000,q=3){
+  # Structure
+  alpha3 <- 1/sqrt(3)
+  alpha2 <- 1/sqrt(2)
+  repX <- 50
+  A1 <- c(rep(alpha3,repX),rep(0,p-repX))
+  A2 <- c(rep(0,repX),rep(alpha2,repX),rep(0,p-2*repX))
+  A <- matrix(c(rep(A1,3),rep(A2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
+  D1 <- c(rep(alpha3,1),rep(0,q-1))
+  D2 <- c(rep(0,1),rep(alpha2,1),rep(0,q-2))
+  D <- matrix(c(rep(D1,3),rep(D2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
+  # Observations
+  d <- ncol(A)+nrow(A)+ncol(D)
+  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
+  phi <- psi[,1:nrow(A)]
+  epsilonX_info <- psi[,nrow(A)+1:(2*repX)]*sqrt(1-sqrt_1_minus_sig2^2)
+  epsilonX_noise <- psi[,nrow(A)+(2*repX)+1:(ncol(A)-2*repX)]
+  epsilonY_info <- psi[,nrow(A)+ncol(A)+1:2]*sqrt(1-sqrt_1_minus_sig2^2)
+  epsilonY_noise <- psi[,d]
+  # X and Y
+  X <- phi%*%A + cbind(epsilonX_info,epsilonX_noise)
+  Y <- phi%*%D + cbind(epsilonY_info,epsilonY_noise)
+  list(X=X,Y=Y)
+}
+```
+
+
+
+```{r}
+simu_1 <- get_design_1(n=50,sqrt_1_minus_sig2 = 0.99,p = 1000,q = 3)
+```
+
+What does the `NCORES` argument do? Setting it to integers greater than 1 gives an error.
+
+Is there a way to include more components in the model?
+```{r}
+model_1 <- ddsPLS(simu_1$X,simu_1$Y,
+                  lambdas = lambdas,
+                  n_B=n_B,
+                  verbose=T)
+```
+```{r}
+model_1_Q2 <- ddsPLS(simu_1$X,simu_1$Y,
+                  criterion = "Q2",
+                  lambdas = lambdas,
+                  n_B=n_B,
+                  verbose=T)
+```
+

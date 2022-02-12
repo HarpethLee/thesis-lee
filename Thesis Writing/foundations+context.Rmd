@@ -79,6 +79,11 @@ $$
 $$
 where $\textbf{X}$ is an $n \times p$ matrix of predictors and $\textbf{Y}$ is a $1 \times p$ matrix of the response variable.
 
+Alternatively, we can find $\beta_i$ as follows,
+$$
+\beta_i = \frac{\langle \textbf{x}_i, \textbf{y} \rangle}{\langle \textbf{x}_i, \textbf{x}_i \rangle}
+$$
+
 
 ## Principal Component Regression
 
@@ -90,14 +95,29 @@ where
 $$
 \theta_i = \frac{\langle \textbf{w}_i, \textbf{y} \rangle}{\langle \textbf{w}_i, \textbf{w}_i \rangle}
 $$
-For high dimensional data, PCR can avoid problems of over fitting that occur with a large number of predictors. Furthermore, it can provide more interpretable models if the principal components can be linked to latent variables. PCR does have some drawbacks, since principal components only depend on variance within predictors, PCR can miss predictors that contribute little to variance among predictors but stronly explain variance among the response variable.
+For high dimensional data, PCR can avoid problems of over fitting that occur with a large number of predictors. Furthermore, it can provide more interpretable models if the principal components can be linked to latent variables. PCR does have some drawbacks, since principal components only depend on variance within predictors, PCR can miss predictors that contribute little to variance among predictors but strongly explain variance among the response variable.
 
 
 ## Partial Least Square
 
-Partial Least Square (PLS) is a regression technique with similarities to PCR. Unlike PCR, PLS consider covariance among predictors as to avoid redundancy here. This allows it to make more accurate predictions than PCR when using models of the same complexity.
- 
- 
+Partial Least Square (PLS) is a regression technique with similarities to PCR. Unlike PCR, PLS considers the covariance matrix instead of the variance matrix. By using the covariance matrix, we ensure that the latent variables of each order will have the most possible correlation with the response variable. For example, the first principle component may only be able to explain most of the variance in the predictors but very little in the response whereas the first component in PLS will explain as much of the variance in the response as possible. This allows it to make more accurate predictions than PCR when using models of the same complexity.
+
+Like PCA, PLS also require all variables to be standardized with $\mu = 0$ and $\sigma^2 = 1$. We then find the $m$th latent variable $\textbf{z}_m$ using the following formula
+$$
+\textbf{z}_m = \sum_{i = 1}^p \hat{\varphi}_{mi} \textbf{x}_j^{(m-1)} 
+$$
+where $\hat{\varphi}_{mi} = \langle \textbf{x}_j^{(m-1)},\textbf{y} \rangle$. \bigskip
+
+We then find the regression coefficient $\hat{\theta}_m$ for $\textbf{z}_m$ as follows
+$$
+\hat{\theta}_m = \frac{\langle \textbf{z}_m , \textbf{y} \rangle}{\langle \textbf{z}_m , \textbf{z}_m \rangle}
+$$
+Note that this is identical to the formula used in classic linear regression and PCR. \bigskip
+
+
+
+
+
   Sections to add
   PCA +Linear Regression?
   PCR

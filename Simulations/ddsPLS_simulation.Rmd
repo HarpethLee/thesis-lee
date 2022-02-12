@@ -168,3 +168,154 @@ ddsPLS(data_1$X,data_1$Y,
                   verbose=T)
 ```
 
+## Design 2
+
+```{r, include=FALSE}
+get_design_2 <- function(seed=1,n=50,q=5,p1=500,p2=5000,
+                         sigma1=0.05,sigma2=0.05,sigmaY=0.1,
+                         ncpX=10,ncpXCom=5,ncpXYCom=3,plot=F){
+  # Internal Function
+  simulateData <- function(n, ncp, p, sigma, sigmaNoise=0.1, ConcVarFact=0.8, n_min_peaks=3){
+    meanPeakSigma <- sigma
+    sigPeakSigma <- sigma / 4
+    axis <- 1:p
+    S <- matrix(0,ncp,p)
+    C <- matrix(0,n,ncp)
+    for(i in 1:ncp){
+      npeaks <- 3+ceiling(10*runif(1))
+      peakheights <- runif(npeaks)
+      sigmas <- runif(npeaks) * sigPeakSigma + meanPeakSigma
+      position <- runif(npeaks) * p
+      for(j in 1:npeaks){
+        S[i,] <- S[i,] + peakheights[j] * exp(-0.5 * ((axis - position[j]) / sigmas[j])^2)
+      }
+    }
+    meanC <- sort(10^runif(ncp),decreasing = T)
+    varC <- ConcVarFact * meanC * runif(ncp)
+    for(i in 1:ncp){
+      C[,i] <- rnorm(n = n,mean = meanC[i], sd = varC[i]/2)
+    }
+    X <- C%*%S;X <- X/max(abs(X))
+    E <- matrix(rnorm(n*p,sd = sigmaNoise),nrow = n,ncol = p)
+    X <- X*sqrt(1-sigmaNoise^2) + E
+    list(X=X, C=C, S=S, E=E)
+  }
+
+  set.seed(seed)
+  # ncpX for each X separately
+  Data_1 <- simulateData(n=n, ncp=ncpX, p=p1, sigma=20, sigmaNoise = sigma1, ConcVarFact=0.8, n_min_peaks=5)
+  Data_2 <- simulateData(n=n, ncp=ncpX, p=p2, sigma=30, sigmaNoise = sigma2, ConcVarFact=0.8, n_min_peaks=5)
+  S1 <- Data_1$S;C1 <- Data_1$C;X1 <- Data_1$X
+  S2 <- Data_2$S;C2 <- Data_2$C
+  # ncpXCom in common
+  C2[,1:ncpXCom] <- C1[,1:ncpXCom,drop=F]
+  X2 <- C2%*%S2;X2 <- X2/max(abs(X2))
+  E2 <- matrix(rnorm(n*p2,sd = sigma2),nrow = n,ncol = p2)
+  X2 <- X2*sqrt(1-sigma2^2) + E2
+  # Build Y on ncpXYCom components
+  Y <- scale(Data_1$C[,1:ncpXYCom,drop=F])
+  # Add extra variables and noise
+  E_y <- matrix(rnorm(n*q,sd = sigmaY),nrow = n,ncol = q)
+  if(q>ncpXYCom){
+    Y <- cbind(Y,matrix(rnorm(n*(q-ncpXYCom)),nrow = n))*sqrt(1-sigmaY^2) + E_y
+  }else{
+    Y <- Y*sqrt(1-sigmaY^2) + E_y
+  }
+  if(plot){
+    layout(matrix(c(1,2,2,3,3,3),nrow = 2,byrow = T))
+    matplot(t(X1),lty=1,type="l")
+    matplot(t(X2),lty=1,type="l")
+    corXY <- cor(cbind(X1,X2),Y)
+    matplot(corXY,type="l")
+  }
+  list(Xs=list(X1=X1,X2=X2),Y=Y,S=list(S1=S1,S2=S2,SXY=list(S1=S1[1:ncpXYCom,],S2=S2[1:ncpXYCom,])))
+}
+```
+
+```{r}
+simu_2.1 <- get_design_2(plot = T)
+```
+
+```{r}
+model_2.1 <- ddsPLS(simu_2.1$X$X1, simu_2.1$Y,
+                    criterion = "Q2",
+                    n_lambdas = 25,
+                    verbose = TRUE)
+
+model_2.2 <- ddsPLS(simu_2.1$X$X2, simu_2.1$Y,
+                    criterion = "Q2",
+                    n_lambdas = 25,
+                    verbose = TRUE)
+```
+
+```{r}
+simu_2.2 <- get_design_2(seed = 2, ncpX = 20, plot = T)
+```
+
+```{r}
+model_2.3 <- ddsPLS(simu_2.2$Xs$X1, simu_2.2$Y,
+                    criterion = "Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE)
+
+model_2.4 <- ddsPLS(simu_2.2$Xs$X2, simu_2.2$Y,
+                    criterion = "Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE)
+```
+
+Model results can also be plotted using the `plot` function.
+```{r}
+plot(model_2.1,type="Q2",legend.position = "bottomleft")
+```
+
+
+## Get Data Simulation
+
+The following `get_data` function is from the vignette for the `ddsPLS` package
+```{r, include=FALSE}
+get_data <- function(n=100,alpha=0.4,beta_0=0.2,eps=0.95,
+                     p1=50,p2=25,p3=25,p=1000){
+   R1 = R2 = R3 <- 1
+   d <- R1+R2+R3
+   A0 <- matrix(c(
+     c(rep(1/sqrt(R1),p1),rep(sqrt(alpha),p2),rep(0,p3),rep(0,p-p1-p2-p3)),
+     c(rep(0,p1),rep(sqrt(1-alpha),p2),rep(0,p3),rep(0,p-p1-p2-p3)),
+     c(rep(0,p1),rep(0,p2),rep(1,p3),rep(0,p-p1-p2-p3))
+   ),nrow = d,byrow = T)
+   A <- eps*A0
+   D0 <- matrix(c(1,0,0,
+                  sqrt(beta_0),sqrt(1-beta_0),0,
+                  0,0,0),nrow = d,byrow = F)
+   D <- eps*D0
+   q <- ncol(D)
+   L_total <- q+p
+   psi <- MASS::mvrnorm(n,mu = rep(0,d+L_total),Sigma = diag(d+L_total))
+   phi <- psi[,1:d,drop=F]
+   errorX <- matrix(rep(sqrt(1-apply(A^2,2,sum)),n),n,byrow = T)
+   errorY <- matrix(rep(sqrt(1-apply(D^2,2,sum)),n),n,byrow = T)
+   X <- phi%*%A + errorX*psi[,d+1:p,drop=F]
+   Y <- phi%*%D + errorY*psi[,d+p+1:q,drop=F]
+   list(X=X,Y=Y)
+ }
+```
+
+```{r}
+data_3.1 <- get_data()
+
+model_3.1 <- ddsPLS(data_3.1$X, data_3.1$Y,
+                    criterion = "Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE)
+```
+
+```{r}
+data_3.2 <- get_data(p1 = 50, p2 = 50, p3 = 50, p = 250)
+
+model_3.2 <- ddsPLS(data_3.2$X, data_3.2$Y,
+                    criterion = "Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE)
+```
+
+

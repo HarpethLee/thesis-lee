@@ -112,13 +112,17 @@ We then find the regression coefficient $\hat{\theta}_m$ for $\textbf{z}_m$ as f
 $$
 \hat{\theta}_m = \frac{\langle \textbf{z}_m , \textbf{y} \rangle}{\langle \textbf{z}_m , \textbf{z}_m \rangle}
 $$
-Note that this is identical to the formula used in classic linear regression and PCR. \bigskip
+Note that this is identical to the formula used in classic linear regression and PCR at this step. \bigskip
 
 
 
+## $L_1$ Sparsification
+
+$L_1$ sparsification is a common shrinkage method used to avoid over fitting models. The $L_1$ penalty is most commonly used in the LASSO model (it is sometimes referred to as the LASSO penalty). The $L_1$ penalty is added to a model by adding a term of $\lambda \sum_{i = 1}^p | \beta_i|$ where $\lambda$ is a parameter for the model. Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
 
 
-  Sections to add
+
+##  Sections to add
   PCA +Linear Regression?
   PCR
   PLS

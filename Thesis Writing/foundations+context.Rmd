@@ -120,6 +120,8 @@ Note that this is identical to the formula used in classic linear regression and
 
 $L_1$ sparsification is a common shrinkage method used to avoid over fitting models. The $L_1$ penalty is most commonly used in the LASSO model (it is sometimes referred to as the LASSO penalty). The $L_1$ penalty is added to a model by adding a term of $\lambda \sum_{i = 1}^p | \beta_i|$ where $\lambda$ is a parameter for the model. Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
 
+!Add that diagram here!
+
 
 
 ##  Sections to add

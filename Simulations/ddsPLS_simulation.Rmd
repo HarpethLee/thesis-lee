@@ -316,6 +316,18 @@ model_3.2 <- ddsPLS(data_3.2$X, data_3.2$Y,
                     criterion = "Q2",
                     n_lambdas = 30,
                     verbose = TRUE)
+
+model_3.3 <- ddsPLS(data_3.2$X, data_3.2$Y,
+                    criterion = "Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE,
+                    LD = TRUE)
+
+model_3.4 <- ddsPLS(data_3.2$X, data_3.2$Y,
+                    criterion = "diffR2Q2",
+                    n_lambdas = 30,
+                    verbose = TRUE,
+                    LD = TRUE)
 ```
 
 

@@ -32,3 +32,13 @@ I am a bit confused as to how PLS compares to PCR. Why doesn't it minimize a mat
 Way to impose $L_1$ norm or something similar without needing to find matrix inverse, max/min problem.
 
 PLS with variable selection, e.g variable selection occurs and then model is built instead of folding variable selection into algorithm for building model.
+
+
+## 2/17
+
+Why $Q^2$? What justifies using just $R^2 - Q^2$?
+
+Could we use cross validation to build models instead?
+Why $Q^2$ and partial least squares?
+Interaction terms?
+WOuld model improve with added nonlinear interaction terms?

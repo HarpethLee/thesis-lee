@@ -62,15 +62,35 @@ style_xaringan(base_font_size = "27px",
 
 ---
 
-## Data-Driven Sparse Partial Least Squares
+## Data-Driven Sparse Partial Least Squares Algorithm
 
-For all $r \in [1:R]$:
+---
 
-a. $\textbf{u}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}(M^{(r)}))$, $\textbf{v}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}({M^{(r)}}^T))$
+<font size = "5">
+For all $\small r \in [1:R]$:
 
-b. $\textbf{t}_r = \textbf{X}^{(r)} \textbf{u}_r$
+--
 
-c. $\textbf{p}_r = \frac{{\textbf{X}^{(r)}}^T \textbf{t}_r}{{\textbf{t}_r}^T \textbf{t}_r}$
+a. $\normalsize \textbf{u}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}(M^{(r)}))$, $\normalsize \textbf{v}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}({M^{(r)}}^T))$
+
+--
+
+b. $\normalsize \textbf{t}_r = \textbf{X}^{(r)} \textbf{u}_r$
+
+--
+
+c. $\normalsize \textbf{p}_r = \frac{{\textbf{X}^{(r)}}^T \textbf{t}_r}{{\textbf{t}_r}^T \textbf{t}_r}$
+
+--
+
+d. $\normalsize \Pi_r = \text{diag}\left(\{\delta_{\neq 0}(\textbf{v}_r)_j \}_{j \in [1:q]} \right)$
+  $\normalsize \textbf{c}_r = \text{argmin}|| \textbf{Y}^{(r)} \Pi_r - \textbf{t}_r \textbf{V}^T||^2 = \frac{({\textbf{Y}^{(r)} \Pi_r})^T \textbf{t}_r}{{\textbf{t}_r}^T \textbf{t}_r}$
+
+--
+
+e. $\normalsize \textbf{X}^{(r+1)} = \textbf{X}^{(r)} - \textbf{t}_r \textbf{p}_r^T$
+  $\normalsize \textbf{Y}^{(r+1)} = \textbf{Y}^{(r)} - \textbf{t}_r \textbf{c}_r^T$
+
 
 ---
 

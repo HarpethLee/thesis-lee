@@ -58,7 +58,7 @@ style_xaringan(base_font_size = "27px",
 
 - Unlike many other sPLS methods, ddsPLS uses bootstrapping for parameter selection.
 
-- Parameter selection is done by minimizing $\bar{R^2_B} - \bar{Q^2_B}$.
+- Parameter selection is done by minimizing $\bar{R}^2_B - \bar{Q}^2_B$.
 
 ---
 

@@ -42,3 +42,10 @@ Could we use cross validation to build models instead?
 Why $Q^2$ and partial least squares?
 Interaction terms?
 WOuld model improve with added nonlinear interaction terms?
+
+
+Look into how much different selection of $\lambda$ change the model.
+
+Ten variables with decreasing correlation. Relation between sample size + correlation and number of latent variables.
+
+Use `MASS::mvrnorm` to help create samples.

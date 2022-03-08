@@ -143,3 +143,22 @@ Models that use latent variables will be able to avoid this problem by projectin
 
 Sparse partial least squares further mitigates problems of over fitting the data as it...
 
+
+
+# Literature Review
+
+1. Data-Driven Sparse Partial Least Squares - Hadrien Lorenzo
+
+  Proposes ddsPLS model, subspace selection is done based on variable selection. Preliminary results suggest the model performs better both with variable selection and overall performance. Unlike many similar models, ddsPLS performs parameter selection through bootstrapping instead of cross validation.
+
+2. Can We Beat Over-fitting - Olivier Cloarec
+
+  Explores problem of over fitting and suggest modified NIPALS PLS algorithm to offer improvement.
+
+3. Globally Sparse PLS Regression - Liu Tzu-Yu
+
+  
+
+4. On the over estimation of Random Forest's out-of-bag error - Silke Janitza
+5. Some aspects of response variable selection and estimation in multivariate linear regression - Jianhua Hu
+

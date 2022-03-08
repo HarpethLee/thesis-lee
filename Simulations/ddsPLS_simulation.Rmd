@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ```{r}
 library(ddsPLS2)
+library(MASS)
+library(spls)
 ```
 
 
@@ -22,7 +24,7 @@ This code chunk opens an applet that can be used to build models using ddsPLS. N
 
 
 Code copied from the [simulation_ssdpls2 repository](https://github.com/hlorenzo/simulation_ddspls) created by Hadrien Lorenzo.
-```{r, include=FALSE}
+```{r Toy Data Simulation, include=FALSE}
 get_toy_example <- function(n=50,sqrt_1_minus_sig2=0.95,p=1000){
   # Structure
   repX <- 50
@@ -41,6 +43,8 @@ get_toy_example <- function(n=50,sqrt_1_minus_sig2=0.95,p=1000){
   list(X=X,Y=Y)
 }
 ```
+
+The `get_toy_example()` function simulates a data frame with `n` observations of where 50 of `p` predictors are associated with the single response variable.
 
 
 ```{r}
@@ -92,7 +96,7 @@ model_toy_2 <- ddsPLS(simu_toy$X,simu_toy$Y,
 
 ## Design 1
 
-```{r, include=FALSE}
+```{r Design 1 Simulation, include=FALSE}
 get_design_1 <- function(n=50,sqrt_1_minus_sig2=0.99,p=1000,q=3){
   # Structure
   alpha3 <- 1/sqrt(3)
@@ -119,7 +123,7 @@ get_design_1 <- function(n=50,sqrt_1_minus_sig2=0.99,p=1000,q=3){
 }
 ```
 
-
+Generates `n` samples of `p` observations with `q` response variables. Projects 5 latent variables onto `p` components.
 
 ```{r}
 simu_1 <- get_design_1(n=50,sqrt_1_minus_sig2 = 0.99,p = 1000,q = 3)
@@ -170,7 +174,7 @@ ddsPLS(data_1$X,data_1$Y,
 
 ## Design 2
 
-```{r, include=FALSE}
+```{r Design 2 Simulation, include=FALSE}
 get_design_2 <- function(seed=1,n=50,q=5,p1=500,p2=5000,
                          sigma1=0.05,sigma2=0.05,sigmaY=0.1,
                          ncpX=10,ncpXCom=5,ncpXYCom=3,plot=F){
@@ -330,4 +334,54 @@ model_3.4 <- ddsPLS(data_3.2$X, data_3.2$Y,
                     LD = TRUE)
 ```
 
+# Novel Simulations
+
+
+The following code simulates a data set with 100 uncorrelated predictors and 1 response variable all sampled from a normal distribution.
+```{r}
+Sigma <- diag(100)
+
+sim_pred <- mvrnorm(n = 1000, mu = rep(0, 100), Sigma = Sigma)
+
+sim_resp <- matrix(rnorm(1000), 1000, 1)
+```
+
+
+```{r}
+ddsPLS(sim_pred, sim_resp, verbose = TRUE)
+```
+As expected no model is built as performance is awful. Interestingly message "no Q2r large enough for tested lambda" is given for justification, seems to suggest it checks just $Q^2$. Perhaps this just means that mean estimation performs better.
+
+```{r}
+Sigma <- matrix(c(1,.75,.75,1),2,2)
+
+n <- 20
+p <- 5
+p <- p - 2
+
+sim_preds <- cbind(mvrnorm(n = n, rep(0, 2), Sigma), matrix(rep(0,n*p),n, p))
+
+sim_resp <- as.matrix(apply(sim_preds,1,function(x) 5*x[1]+x[2]))
+
+sim_preds <- sim_preds + matrix(rnorm(n*(p+2), sd = 0.6), n,(p+2))
+sim_resp <- sim_resp + matrix(rnorm(n, sd = 0.8), n,1)
+```
+
+The above code simulates data with $n$ observations of $p$ predictors and 1 response variable. There are two predictors from which responses are linearly generated. Random noise is then added to the predictors and the response. As expected, the ddsPLS model performs very well.
+
+```{r}
+pls_model <- ddsPLS(sim_preds, sim_resp, verbose = TRUE)
+```
+
+```{r}
+spls_mod <- spls(sim_preds, sim_resp, K = 2, eta = 0.74)
+```
+
+
+```{r}
+ORings <- read.csv('http://people.reed.edu/~jones/Courses/Orings.csv')
+```
+```{r}
+
+```
 

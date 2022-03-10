@@ -373,15 +373,5 @@ The above code simulates data with $n$ observations of $p$ predictors and 1 resp
 pls_model <- ddsPLS(sim_preds, sim_resp, verbose = TRUE)
 ```
 
-```{r}
-spls_mod <- spls(sim_preds, sim_resp, K = 2, eta = 0.74)
-```
 
-
-```{r}
-ORings <- read.csv('http://people.reed.edu/~jones/Courses/Orings.csv')
-```
-```{r}
-
-```
 

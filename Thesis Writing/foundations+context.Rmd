@@ -147,6 +147,35 @@ Sparse partial least squares further mitigates problems of over fitting the data
 
 # Literature Review
 
+
+Partial Least Squares was first proposed by Herman Wold in 1975 under the name Non-linear Iterative Partial Least Squares (NIPALS) in order to model complex datasets. Later models built using the framework of NIPALS would more simply be referred to by the name Partial Least Squares(PLS). Wold would later suggest that the model be referred to as Projection onto Latent Structures as he found this name to more accurately describe the model. Parameters for the model are found as the result of bivariate least squares linear regression using a latent variable believed to describe the underlying relation between predictor and response variables. These latent variables are then iterated over to estimate model parameters.
+
+PLS and variants have shown to be some of the best performing models for working with high dimensional data. This has lead to its widespread use in fields such as chemometrics, genomics, spectrometry, as well as others that work with data where the number of predictors is close to or greater than the number of observations. 
+
+PLS models generally follow a five step process as outlined by Lorenzo et al.
+
+a. Estimate the covariance matrix between the predictor ($\textbf{X}$) and response ($\textbf{Y}$) variables.
+
+b. Estimate the singular-space associated with the largest singular-value of the previous matrix.
+
+c. Project the covariate and response parts on the previously defined subspace.
+
+d. Estimate the linear regression matrix of the response part on the covariate part in the subspace.
+
+e. Remove the information carried by the current subspace from the covariate and response parts
+
+Although not a problem unique to PLS, model consistency is shown to decrease as the ratio of predictors to observations increases. This is due to models tendency to overfit the data as they are unable to distinguish between noise and the underlying relationships of variables. In order to improve on these problems of overfitting, $L_1$ penalization of regression coefficients was introduced by Tibshirani in 1995 with the Lasso method. The Least Absolute Shrinkage and Selection Operator(Lasso) model is based on Ordinary Least Squares Regression(OLS) and introduces a penalty term to enforce sparsity among predictors.
+
+The basic idea of penalization is to discourage models from including larger coefficients for terms that only explain a small amount of variance. This prevents models from overfitting data as the model will give less weight to terms that only explain noise in the data when trained on a sufficiently large sample. Unlike similar models with a penalty term such as Ridge Regression, Lasso also performs variable selection.
+
+The Lasso model contains one parameter, $\lambda$, which takes positive real numbers as values and decide how heavily the model will be penalized. When 0 is chosen, the model is identical to partial least squares. As $\lambda$ increases, the model will become increasingly sparse. When $\lambda \to \infty$, the model will become $\hat{y} = \beta_0 = \bar{X}$ as all coefficients other than $\beta_0$ are penalized. Unlike other shrinkage methods, Lasso also performs variable selection as the $L_1$ norm will send coefficients to 0 for sufficiently large $\lambda$. This means that Lasso tends to select simpler more interpretable models than 
+similar techniques. Parameter selection is usually performed through cross validation, a method originally proposed by Tibshirani.
+
+Sparse Partial Least Squares(SPLS) is a PLS method that uses the $L_1$-norm to achieve a sparser covariance matrix. Originally proposed in 2007/2008 by either Chun and Keles or Le Kao, Rossow, Robert-Granié, and Besse. By performing variable shrinkage and selection with the covariance matrix, we are trying to not project onto a latent structure that is overly determined by noise in our observed data.
+
+
+## Junk
+
 1. Data-Driven Sparse Partial Least Squares - Hadrien Lorenzo
 
   Proposes ddsPLS model, subspace selection is done based on variable selection. Preliminary results suggest the model performs better both with variable selection and overall performance. Unlike many similar models, ddsPLS performs parameter selection through bootstrapping instead of cross validation.

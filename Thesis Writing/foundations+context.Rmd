@@ -36,7 +36,8 @@ Consider the case where $r=1$,
 ```{r}
 library(gt)
 
-ratio_df <- data.frame(n = c(1,2,5,10,25,100), Ratio = c('1', '0.7854', '0.1645', '2.49*e-3', '2.854e-11', '1.868e-70'))
+ratio_df <- data.frame(n = c(1,2,5,10,25,100),
+                       Ratio = c('1', '0.7854', '0.1645', '2.49*e-3', '2.854e-11', '1.868e-70'))
 
 gt(ratio_df)
 ```
@@ -150,6 +151,8 @@ Sparse partial least squares further mitigates problems of over fitting the data
 
 Partial Least Squares was first proposed by Herman Wold in 1975 under the name Non-linear Iterative Partial Least Squares (NIPALS) in order to model complex datasets. Later models built using the framework of NIPALS would more simply be referred to by the name Partial Least Squares(PLS). Wold would later suggest that the model be referred to as Projection onto Latent Structures as he found this name to more accurately describe the model. Parameters for the model are found as the result of bivariate least squares linear regression using a latent variable believed to describe the underlying relation between predictor and response variables. These latent variables are then iterated over to estimate model parameters.
 
+PLS models always contain one parameter, $K$, the number of latent variables included in the model. Some variants allow for manual selection of $K$ while others use their own criteria to select the number of latent variables included in the model. Latent variables corresponding to higher values of $K$ will explain less of the relationship between the predictors and response. Ideally $K$ is low as this means that the relation between predictors and the response can be described using a small number of latent variables.
+
 PLS and variants have shown to be some of the best performing models for working with high dimensional data. This has lead to its widespread use in fields such as chemometrics, genomics, spectrometry, as well as others that work with data where the number of predictors is close to or greater than the number of observations. 
 
 PLS models generally follow a five step process as outlined by Lorenzo et al.
@@ -171,7 +174,24 @@ The basic idea of penalization is to discourage models from including larger coe
 The Lasso model contains one parameter, $\lambda$, which takes positive real numbers as values and decide how heavily the model will be penalized. When 0 is chosen, the model is identical to partial least squares. As $\lambda$ increases, the model will become increasingly sparse. When $\lambda \to \infty$, the model will become $\hat{y} = \beta_0 = \bar{X}$ as all coefficients other than $\beta_0$ are penalized. Unlike other shrinkage methods, Lasso also performs variable selection as the $L_1$ norm will send coefficients to 0 for sufficiently large $\lambda$. This means that Lasso tends to select simpler more interpretable models than 
 similar techniques. Parameter selection is usually performed through cross validation, a method originally proposed by Tibshirani.
 
-Sparse Partial Least Squares(SPLS) is a PLS method that uses the $L_1$-norm to achieve a sparser covariance matrix. Originally proposed in 2007/2008 by either Chun and Keles or Le Kao, Rossow, Robert-Granié, and Besse. By performing variable shrinkage and selection with the covariance matrix, we are trying to not project onto a latent structure that is overly determined by noise in our observed data.
+Sparse partial least squares(SPLS) is a PLS method that uses the $L_1$-norm to penalize PLS models and thus avoid overfitting the data. SPLS was first formulated in 2007 by Chun and Keles and published in 2010. Their formulation was heavily inspired by the recently proposed technique of sparse principal component analysis. Their model works by finding a surrogate vector close to the original direction vector and imposing sparsity through the $L_1$-norm on this vector. The SPLS model has four parameters, $(K, \kappa, \lambda_1, \lambda_2)$. $K$ is the number of components, $\kappa \in [0,1]$ and decides how far the starting surrogate vector can be from the original direction vector, $\lambda_1$ determines the severity of the $L_1$ penalty, and $\lambda_2$ determines the severity of the $L_2$ penalty.
+
+Functionally, the SPLS only has two parameters that need to be tuned, $K$ and $\lambda_1$. Values of $\kappa<\frac{1}{2}$ avoid local solution problems while offering little variation in the final model. Chun and Keles suggested that several values of $\kappa < \frac{1}{2}$ be tried but did not offer a formal proposal for selecting an ideal value. $\lambda_2$ is always tuned to $\infty$ in order to preserve the soft-thresholding solution. $\lambda_1$ and $K$ are tuned using cross validation.
+
+Referring to the 5 step process of PLS algorithms outline by Lorenzo, we can write the algorithm for SPLS such that only the second step(b) is different depending on our formulation. 
+
+Another sparse partial least squares(this time denoted as sPLS) algorithm was suggested by Lê Cao,  Rossow, Robert-Granié, and Besse. The sPLS algorithm depends on initializing the the singular vector $\textbf{v}$ and iterating until the relation between the two singular vectors, $\textbf{u}$ and $\textbf{v}$, converges. Each of these singular vectors has a corresponding parameter, $\lambda_{\textbf{u}}$ and $\lambda_{\textbf{v}}$. This leads to a total of $2K + 1$ parameters(note that $K$ is one of the parameters) as there are two additional parameters that must be tuned for each component. We should note that sPLS only performs variable selection among predictors.
+
+Data-driven sparse partial least squares(ddsPLS) is a new method introduced in 2021 by Lorenzo, Cloarec, Thiébaut, and Saracco. Unlike previous sparse PLS methods, ddsPLS directly penalizes the empirical covariance matrix of the data. This is where the "data-driven" part of the name comes from the fact that the covariance matrix is more closely related to the original data than the eigenvectors of the covariance matrix which are normally penalized.
+
+Unlike other sparse PLS methods, ddsPLS only has $K+1$ parameters, $K$ and $\Lambda_K = {\lambda_k,k = 1, ... ,K}$. Since the covariance matrix is directly penalized, we only need one tuning parameter per component with $\lambda_k$ being the tuning parameter for the $k$th component. Each $\lambda_k$ is tuned through bootstrapping, we can either select using $R^2 - Q^2$ or $Q^2$ metric with the former being recommended.
+
+The use of bootstrapping for parameter selection in the ddsPLS model differs from practice for similar models. Lorenzo justifies the choice by saying that "use of bootstrap is interesting to enrich the underlying information of the available data". Bootstrapping was developed by Efron in 1979 and has become one of the most important techniques in statistics with the increased availability of high speed computers. Typically K-fold cross validation is used for parameter selection with K varying based on the sample size and other features of the data. In his study of model selection techniques, Kohavi recommended 10-fold stratified cross validation for model selection. 
+
+ddsPLS and other PLS models often use the $Q^2$ metric to assess model performance. $Q^2$ is closely related to the more common $R^2$ metric as both are calculated using the formula $1 - \frac{\text{RSS}}{\text{TSS}}$ where RSS is the residual sum of squares and TSS is the total sum of squares. $R^2$ is calculated using the data the model is built using while $Q^2$ is calculated using data that the model isn't built on. Typically this is done as part of cross validation with $Q^2$ calculated using the excluded data. The $Q^2$ metric was introduced by Stone and Gessier while Tennehaus first suggested it uses to assess PLS models.
+
+Despite the similarity of the $R^2$ and $Q^2$ metrics, the two metrics will improve under different conditions for the model. Maximizing $R^2$ will favor more complex models that closely fit the training data while maximizing $Q^2$ will favor less complex models that address the underlying structure of the data. Initially, increasing model complexity will improve both metrics. However, past a certain threshold, increasing model complexity will cause $Q^2$ to decrease while $R^2$ to continues to increase. Due to this, minimizing $R^2 - Q^2$ is recommended for selecting values of $\lambda_k$ for the ddsPLS model.
+
 
 
 ## Junk

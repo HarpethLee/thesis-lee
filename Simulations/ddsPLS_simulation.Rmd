@@ -304,6 +304,8 @@ get_data <- function(n=100,alpha=0.4,beta_0=0.2,eps=0.95,
  }
 ```
 
+The variable `eps` seems to relate the predictors and response, as well as `phi`. The dimension of `phi` specifies the number of latent variables.
+
 ```{r}
 data_3.1 <- get_data()
 

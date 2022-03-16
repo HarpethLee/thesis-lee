@@ -1,0 +1,68 @@
+---
+title: "Theory"
+author: "Harpeth Lee"
+date: "3/15/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Theory
+
+
+### Principal Component Analysis
+
+Due to the similarity between partial least squares and principal component regression, we will briefly review principal component analysis. 
+
+Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
+
+
+  PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$.
+    
+    
+  The algorithm for finding the first principal component of a standardized $n \times p$ data matrix $\textbf{X}$ is as follows:
+$$
+\textbf{w}_1 = \text{argmax}_{||\textbf{w}||=1} \Big\{ \textbf{w}^T \textbf{X}^T\textbf{X} \textbf{w} \Big\}
+$$
+
+
+Note that $\textbf{X}^T\textbf{X}$ is the covariance matrix for $\textbf{X}$. For all following components, we will find the matrix $\hat{\textbf{X}}_k$ such that all variance explained by the first $k-1$ principal components is removed. This is done by finding
+$$
+\hat{\textbf{X}}_k = \textbf{X} - \sum_{j = 1}^{k-1} \textbf{X} \textbf{w}_j \textbf{w}_j^T
+$$
+We then use the same equation used to find $\textbf{w}_1$ to find the $k$th principle component, replacing $\textbf{X}$ with $\hat{\textbf{X}}_k$.
+
+The following plot shows the first two(and only) principals components for a set of two dimensional data. The red line is the first principal component while the green line is the second. Note that they are perpendicular. The red line describes as much variation in the data using a singular vector in the original space. Although it may look similar, the first principal component is not the same as the regression line which minimizes the residual distance.
+
+```{r, echo=FALSE}
+library(MASS)
+
+rand_data <- mvrnorm(n = 20, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 4), nrow = 2))
+
+pca_data <- prcomp(rand_data, scale. = TRUE)
+
+plot(scale(rand_data), ann = FALSE)
+abline(a = 0, b = pca_data$rotation[1,1]/pca_data$rotation[2,1], col = "red")
+abline(a = 0, b = pca_data$rotation[1,2]/pca_data$rotation[2,2], col = "green")
+```
+
+Often principal components can be used as latent variables. Sometimes they may be meaningful and correspond to a property of the data that isn't directly measured. For example, the first principal component of data containing the nutritional values for food may correspond to how rich in vitamins a food is.
+
+Principal Component Regression (PCR) is a regression technique that uses principal components as predictors. To perform PCR, one first finds the desired number of principal components and then performs linear regression using the selected principal components as predictors. Letting $\textbf{w}_1, \textbf{w}_2,...,\textbf{w}_k$ be the first $k$ principal components of our predictors $\textbf{X}$. This will take the form 
+$$
+\textbf{y} = \theta_0 + \sum_{i = 1}^k \theta_i \textbf{w}_i
+$$
+
+
+### Partial Least Squares
+
+Partial Least Squares(PLS) is a regression technique similar to PCR. Both techniques work by finding latent variables in the original data with which to perform linear regression. PLS is considered to be one of the best tools for modeling the underlying structure between $\textbf{X}$ and $\textbf{Y}$ in feature space. As suggested its creator, the name "Projection onto Latent Structures" is a more descriptive acronym as the original data is projected onto latent structures which are then used for linear regression.
+
+Unlike PCR, PLS creates latent variables using the covariance matrix instead of the variance matrix. Implicit in PCR is the assumption that direction of high variance among the predictors explains much of the variance among the response variables. While this assumption is usually reasonable, PLS circumvents this assumption by directly building the latent variables along the direction in feature space along where the responses vary the most along the predictors.
+
+PLS is designed to model situations where there are a high number of predictors in relation to the number of observations($n \approx p/n < p$). In these situation, most models will struggle to differentiate noise from signal and will be highly variable depending on the data used to train them. PLS circumvents this problem by simplifying the data into a smaller number of latent variables that still strongly reflect the original data set. Unlike models that depend solely on variable selection, PLS will not discard relevant information from all observed variables in order to fit a model.
+
+PLS is also designed to perform well in situations where predictors are highly correlated and noisy. The data is projected onto underlying structures in order to handle correlation between predictors. Correlated predictors can often be better explained along a singular vector in feature space that captures all correlated predictors. This correlation will be captured in the latent structures that the data is project onto. These underlying structures captured in the latent variables will also be less sensitive to noise among the predictors.
+

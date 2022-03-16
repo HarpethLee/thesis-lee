@@ -64,7 +64,7 @@ toy_results <- toy_mod$results
 
 This is a recreation of the toy example created by Hadrien Lorenzo, the original example can be found [here](http://htmlpreview.github.io/?https://github.com/hlorenzo/simulation_ddspls/blob/main/simulation_ddspls.html).
 
-```{r, message=TRUE}
+```{r, message=TRUE, cache=TRUE}
 # Creates toy data set to be used
 simu_toy <- get_toy_example(n=50,sqrt_1_minus_sig2 = 0.9025,p = 1000)
 
@@ -96,7 +96,7 @@ model_toy_2 <- ddsPLS(simu_toy$X,simu_toy$Y,
 
 ## Design 1
 
-```{r Design 1 Simulation, include=FALSE}
+```{r Design 1 Simulation, include=FALSE, cache=TRUE}
 get_design_1 <- function(n=50,sqrt_1_minus_sig2=0.99,p=1000,q=3){
   # Structure
   alpha3 <- 1/sqrt(3)
@@ -132,13 +132,13 @@ simu_1 <- get_design_1(n=50,sqrt_1_minus_sig2 = 0.99,p = 1000,q = 3)
 What does the `NCORES` argument do? Setting it to integers greater than 1 gives an error.
 
 Is there a way to include more components in the model?
-```{r}
+```{r, cache=TRUE}
 model_1 <- ddsPLS(simu_1$X,simu_1$Y,
                   lambdas = lambdas,
                   n_B=n_B,
                   verbose=T)
 ```
-```{r}
+```{r, cache=TRUE}
 model_1_Q2 <- ddsPLS(simu_1$X,simu_1$Y,
                   criterion = "Q2",
                   lambdas = lambdas,
@@ -174,7 +174,7 @@ ddsPLS(data_1$X,data_1$Y,
 
 ## Design 2
 
-```{r Design 2 Simulation, include=FALSE}
+```{r Design 2 Simulation, include=FALSE, cache=TRUE}
 get_design_2 <- function(seed=1,n=50,q=5,p1=500,p2=5000,
                          sigma1=0.05,sigma2=0.05,sigmaY=0.1,
                          ncpX=10,ncpXCom=5,ncpXYCom=3,plot=F){
@@ -236,11 +236,11 @@ get_design_2 <- function(seed=1,n=50,q=5,p1=500,p2=5000,
 }
 ```
 
-```{r}
+```{r, cache=TRUE}
 simu_2.1 <- get_design_2(plot = T)
 ```
 
-```{r}
+```{r, cache=TRUE}
 model_2.1 <- ddsPLS(simu_2.1$X$X1, simu_2.1$Y,
                     criterion = "Q2",
                     n_lambdas = 25,
@@ -252,11 +252,11 @@ model_2.2 <- ddsPLS(simu_2.1$X$X2, simu_2.1$Y,
                     verbose = TRUE)
 ```
 
-```{r}
+```{r, cache=TRUE}
 simu_2.2 <- get_design_2(seed = 2, ncpX = 20, plot = T)
 ```
 
-```{r}
+```{r, cache=TRUE}
 model_2.3 <- ddsPLS(simu_2.2$Xs$X1, simu_2.2$Y,
                     criterion = "Q2",
                     n_lambdas = 30,
@@ -269,7 +269,7 @@ model_2.4 <- ddsPLS(simu_2.2$Xs$X2, simu_2.2$Y,
 ```
 
 Model results can also be plotted using the `plot` function.
-```{r}
+```{r, cache=TRUE}
 plot(model_2.1,type="Q2",legend.position = "bottomleft")
 ```
 
@@ -277,7 +277,7 @@ plot(model_2.1,type="Q2",legend.position = "bottomleft")
 ## Get Data Simulation
 
 The following `get_data` function is from the vignette for the `ddsPLS` package
-```{r, include=FALSE}
+```{r, include=FALSE, cache=TRUE}
 get_data <- function(n=100,alpha=0.4,beta_0=0.2,eps=0.95,
                      p1=50,p2=25,p3=25,p=1000){
    R1 = R2 = R3 <- 1
@@ -306,7 +306,7 @@ get_data <- function(n=100,alpha=0.4,beta_0=0.2,eps=0.95,
 
 The variable `eps` seems to relate the predictors and response, as well as `phi`. The dimension of `phi` specifies the number of latent variables.
 
-```{r}
+```{r, cache=TRUE}
 data_3.1 <- get_data()
 
 model_3.1 <- ddsPLS(data_3.1$X, data_3.1$Y,
@@ -315,7 +315,7 @@ model_3.1 <- ddsPLS(data_3.1$X, data_3.1$Y,
                     verbose = TRUE)
 ```
 
-```{r}
+```{r, cache=TRUE}
 data_3.2 <- get_data(p1 = 50, p2 = 50, p3 = 50, p = 250)
 
 model_3.2 <- ddsPLS(data_3.2$X, data_3.2$Y,
@@ -375,5 +375,66 @@ The above code simulates data with $n$ observations of $p$ predictors and 1 resp
 pls_model <- ddsPLS(sim_preds, sim_resp, verbose = TRUE)
 ```
 
+## Complex Simulated Data 
+
+The general structure of simulated data is $\textbf{X} = \textbf{A}^T \phi + \epsilon_{X}$ and $\textbf{Y} = \textbf{D}^T \phi + \epsilon_Y$. Note that $\phi$ provides the structure between the two. Code structures it as $\textbf{X} = \phi\textbf{A}  + \epsilon_{X}$ and similarly for $\textbf{Y}$. $\epsilon$ is added random error. $\text{Cov}(\textbf{X}, \textbf{Y}) = \textbf{D}^T \textbf{A}$.
+
+
+```{r}
+## Right now this doesn't work for most values, need to find a way to generate A,D, and phi based on args.
+
+sim_data <- function(n = 5, p = 10, q = 2) {
+  
+  A <- diag(p)
+  D <- matrix(c(rep(1, n), rep(0,p), rep(1,n)), nrow = p)
+  
+  phi <- diag(p)[1:n,]
+  
+  epsilon_X <- mvrnorm(n = dim(phi)[1],
+                       rep(0, c(dim(A)[2])),
+                       Sigma = diag(dim(A)[2]))
+  
+  epsilon_Y <- mvrnorm(n = dim(phi)[1],
+                       rep(0, c(dim(D)[2])),
+                       Sigma = diag(dim(D)[2]))
+  
+  X <- phi %*% A + epsilon_X
+  Y <- phi %*% D + epsilon_Y
+  
+  
+  list(X=X, Y=Y)
+}
+```
+
+
+
+
+```{r, eval=FALSE}
+n=50
+sqrt_1_minus_sig2=0.99
+p=1000
+q=3
+  # Structure
+  alpha3 <- 1/sqrt(3)
+  alpha2 <- 1/sqrt(2)
+  repX <- 50
+  A1 <- c(rep(alpha3,repX),rep(0,p-repX))
+  A2 <- c(rep(0,repX),rep(alpha2,repX),rep(0,p-2*repX))
+  A <- matrix(c(rep(A1,3),rep(A2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
+  D1 <- c(rep(alpha3,1),rep(0,q-1))
+  D2 <- c(rep(0,1),rep(alpha2,1),rep(0,q-2))
+  D <- matrix(c(rep(D1,3),rep(D2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
+  # Observations
+  d <- ncol(A)+nrow(A)+ncol(D)
+  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
+  phi <- psi[,1:nrow(A)]
+  epsilonX_info <- psi[,nrow(A)+1:(2*repX)]*sqrt(1-sqrt_1_minus_sig2^2)
+  epsilonX_noise <- psi[,nrow(A)+(2*repX)+1:(ncol(A)-2*repX)]
+  epsilonY_info <- psi[,nrow(A)+ncol(A)+1:2]*sqrt(1-sqrt_1_minus_sig2^2)
+  epsilonY_noise <- psi[,d]
+  # X and Y
+  X <- phi%*%A + cbind(epsilonX_info,epsilonX_noise)
+  Y <- phi%*%D + cbind(epsilonY_info,epsilonY_noise)
+```
 
 

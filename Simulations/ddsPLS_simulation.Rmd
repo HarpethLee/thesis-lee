@@ -380,23 +380,34 @@ pls_model <- ddsPLS(sim_preds, sim_resp, verbose = TRUE)
 The general structure of simulated data is $\textbf{X} = \textbf{A}^T \phi + \epsilon_{X}$ and $\textbf{Y} = \textbf{D}^T \phi + \epsilon_Y$. Note that $\phi$ provides the structure between the two. Code structures it as $\textbf{X} = \phi\textbf{A}  + \epsilon_{X}$ and similarly for $\textbf{Y}$. $\epsilon$ is added random error. $\text{Cov}(\textbf{X}, \textbf{Y}) = \textbf{D}^T \textbf{A}$.
 
 
-```{r}
-## Right now this doesn't work for most values, need to find a way to generate A,D, and phi based on args.
-
-sim_data <- function(n = 5, p = 10, q = 2) {
+```{r Sim Data Function}
+sim_data <- function(n = 5, p = 10, q = 2, R = 5, x = 3, noise_weight = 1, D_method = "new") {
   
-  A <- diag(p)
-  D <- matrix(c(rep(1, n), rep(0,p), rep(1,n)), nrow = p)
+  # Ensures x<=R, if x>R the dimension of A is incompatible with phi
+  if(x > R){
+    x = R
+  }
   
-  phi <- diag(p)[1:n,]
+  # Creates A and D matrices
+  A <- matrix(c(rep(rep(1,p),x), rep(rep(0,p),R-x)), ncol = p)
+  
+  if(D_method == "new") {
+     D <- matrix(rep(1, R*q), nrow = R)
+  } else {
+    D <- diag(max(q, R))[1:R, 1:q]
+  }
+  
+  d <- ncol(A)+nrow(A)+ncol(D)
+  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
+  phi <- psi[,1:nrow(A)]
   
   epsilon_X <- mvrnorm(n = dim(phi)[1],
-                       rep(0, c(dim(A)[2])),
-                       Sigma = diag(dim(A)[2]))
+                       rep(0, dim(A)[2]),
+                       Sigma = noise_weight*diag(dim(A)[2]))
   
   epsilon_Y <- mvrnorm(n = dim(phi)[1],
-                       rep(0, c(dim(D)[2])),
-                       Sigma = diag(dim(D)[2]))
+                       rep(0, dim(D)[2]),
+                       Sigma = noise_weight*diag(dim(D)[2]))
   
   X <- phi %*% A + epsilon_X
   Y <- phi %*% D + epsilon_Y
@@ -407,34 +418,128 @@ sim_data <- function(n = 5, p = 10, q = 2) {
 ```
 
 
-
-
 ```{r, eval=FALSE}
-n=50
-sqrt_1_minus_sig2=0.99
-p=1000
-q=3
-  # Structure
-  alpha3 <- 1/sqrt(3)
-  alpha2 <- 1/sqrt(2)
-  repX <- 50
-  A1 <- c(rep(alpha3,repX),rep(0,p-repX))
-  A2 <- c(rep(0,repX),rep(alpha2,repX),rep(0,p-2*repX))
-  A <- matrix(c(rep(A1,3),rep(A2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
-  D1 <- c(rep(alpha3,1),rep(0,q-1))
-  D2 <- c(rep(0,1),rep(alpha2,1),rep(0,q-2))
-  D <- matrix(c(rep(D1,3),rep(D2,2)),nrow = 5,byrow = T)*sqrt_1_minus_sig2
-  # Observations
-  d <- ncol(A)+nrow(A)+ncol(D)
-  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
-  phi <- psi[,1:nrow(A)]
-  epsilonX_info <- psi[,nrow(A)+1:(2*repX)]*sqrt(1-sqrt_1_minus_sig2^2)
-  epsilonX_noise <- psi[,nrow(A)+(2*repX)+1:(ncol(A)-2*repX)]
-  epsilonY_info <- psi[,nrow(A)+ncol(A)+1:2]*sqrt(1-sqrt_1_minus_sig2^2)
-  epsilonY_noise <- psi[,d]
-  # X and Y
-  X <- phi%*%A + cbind(epsilonX_info,epsilonX_noise)
-  Y <- phi%*%D + cbind(epsilonY_info,epsilonY_noise)
+# This chunk isn't running, my guess is that setting a seed causes
+# problems for the bootstrapping done to run ddsPLS
+
+set.seed(1999)
+sim_1 <- sim_data()
+
+sim1_pls <- ddsPLS(sim_1$X, sim_1$Y,
+                   n_B = 30,
+                   n_lambdas = 25,
+                   verbose = TRUE)
 ```
 
+ddsPLS is not an appropriate method when working with a small sample size as 
 
+```{r, eval=FALSE}
+set.seed(1999)
+sim_1 <- sim_data()
+```
+
+```{r, eval=FALSE}
+sim1_pls <- ddsPLS(sim_1$X, sim_1$Y,
+                   verbose = TRUE)
+```
+
+```{r, cache=TRUE}
+set.seed(1894)
+
+sim_2 <- sim_data(n = 100, p = 150, q = 5, R = 5, x = 4, D_method = "old")
+```
+
+```{r, cache=TRUE}
+sim2_pls <- ddsPLS(sim_2$X, sim_2$Y,
+                   verbose = TRUE)
+
+sim2_pls <- ddsPLS(sim_2$X, sim_2$Y,
+                   criterion = "Q2",
+                   verbose = TRUE)
+```
+
+```{r, cache=TRUE}
+set.seed(108)
+
+sim_3 <- sim_data(n = 50, p = 200, q = 5, R = 25, x = 10, D_method = "old")
+```
+
+```{r, cache=TRUE}
+sim3_pls <- ddsPLS(sim_3$X, sim_3$Y,
+                   verbose = TRUE)
+
+sim3_pls <- ddsPLS(sim_3$X, sim_3$Y,
+                   criterion = "Q2",
+                   verbose = TRUE)
+```
+
+```{r, cache=TRUE}
+set.seed(43)
+
+sim_4 <- sim_data(n = 250, p = 1000, q = 10, R = 100, x = 95, D_method = "old")
+```
+
+```{r}
+sim4_pls <- ddsPLS(sim_4$X, sim_4$Y,
+                   verbose = TRUE)
+
+sim4_pls <- ddsPLS(sim_4$X, sim_4$Y,
+                   criterion = "Q2",
+                   verbose = TRUE)
+```
+
+```{r, cache=TRUE}
+set.seed(99)
+
+sim_5 <- sim_data(n = 500, p = 500, q = 10, R = 100, x = 95, D_method = "old")
+```
+
+```{r, cache=TRUE}
+sim5_pls <- ddsPLS(sim_5$X, sim_5$Y,
+                   verbose = TRUE)
+
+sim5_pls <- ddsPLS(sim_5$X, sim_5$Y,
+                   criterion = "Q2",
+                   verbose = TRUE)
+```
+
+```{r,cache=TRUE}
+set.seed(99)
+
+sim_6 <- sim_data(n = 250, p = 200, q = 10, R = 8, x = 7, D_method = "old")
+```
+
+```{r, cache=TRUE}
+sim6_pls <- ddsPLS(sim_6$X, sim_6$Y,
+                   verbose = TRUE)
+
+sim6_pls <- ddsPLS(sim_6$X, sim_6$Y,
+                   criterion = "Q2",
+                   verbose = TRUE)
+```
+
+It looks like there is a problem with the way I am simulating the data. All of the simulations have only explained a low amount of the variation in the data, perhaps due to the relation between `R` and `x`.
+
+
+I changed `A` from a subset of a diagonal matrix to a matrix of all 1s and the function starts to work well. Running the code with different values of `q` and `noise_weight = 0` returns a model that perfectly explains the data.
+```{r, cache=TRUE}
+set.seed(12)
+
+sim_7 <- sim_data(n = 100, p = 200, q = 5, noise_weight = 0.5)
+```
+
+```{r, cache=TRUE}
+sim7_pls <- ddsPLS(sim_7$X, sim_7$Y,
+                   verbose = TRUE)
+```
+```{r, cache=TRUE}
+set.seed(12)
+
+sim_8 <- sim_data(n = 100, p = 200, q = 150, noise_weight = 0)
+```
+
+```{r, cache=TRUE}
+sim8_pls <- ddsPLS(sim_8$X, sim_8$Y,
+                   verbose = TRUE)
+```
+If $q > n$, then the model is still able to perfectly explain the variance.

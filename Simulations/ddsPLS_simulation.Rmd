@@ -543,3 +543,16 @@ sim8_pls <- ddsPLS(sim_8$X, sim_8$Y,
                    verbose = TRUE)
 ```
 If $q > n$, then the model is still able to perfectly explain the variance.
+
+
+```{r, cache=TRUE}
+set.seed(12)
+
+sim_9 <- sim_data(n = 50, p = 50, q = 150, noise_weight = 0)
+```
+
+```{r, cache=TRUE}
+sim9_pls <- ddsPLS(sim_9$X, sim_9$Y,
+                   verbose = TRUE)
+```
+Still works when $n<q$ and $p<q$.

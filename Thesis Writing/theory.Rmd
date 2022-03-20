@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Theory
 
 
-### Principal Component Analysis
+## Principal Component Analysis
 
 Due to the similarity between partial least squares and principal component regression, we will briefly review principal component analysis. 
 
@@ -24,13 +24,13 @@ Principal component analysis(PCA) is a commonly used unsupervised learning techn
     
   The algorithm for finding the first principal component of a standardized $n \times p$ data matrix $\textbf{X}$ is as follows:
 $$
-\textbf{w}_1 = \text{argmax}_{||\textbf{w}||=1} \Big\{ \textbf{w}^T \textbf{X}^T\textbf{X} \textbf{w} \Big\}
+\textbf{w}_1 = \text{argmax}_{||\textbf{w}||=1} \Big\{ \textbf{w}^{\text{T}} \textbf{X}^{\text{T}}\textbf{X} \textbf{w} \Big\}
 $$
 
 
 Note that $\textbf{X}^T\textbf{X}$ is the covariance matrix for $\textbf{X}$. For all following components, we will find the matrix $\hat{\textbf{X}}_k$ such that all variance explained by the first $k-1$ principal components is removed. This is done by finding
 $$
-\hat{\textbf{X}}_k = \textbf{X} - \sum_{j = 1}^{k-1} \textbf{X} \textbf{w}_j \textbf{w}_j^T
+\hat{\textbf{X}}_k = \textbf{X} - \sum_{j = 1}^{k-1} \textbf{X} \textbf{w}_j \textbf{w}_j^{\text{T}}
 $$
 We then use the same equation used to find $\textbf{w}_1$ to find the $k$th principle component, replacing $\textbf{X}$ with $\hat{\textbf{X}}_k$.
 
@@ -55,8 +55,12 @@ $$
 \textbf{y} = \theta_0 + \sum_{i = 1}^k \theta_i \textbf{w}_i
 $$
 
+## Latent Variable Models
 
-### Partial Least Squares
+
+
+
+## Partial Least Squares
 
 Partial Least Squares(PLS) is a regression technique similar to PCR. Both techniques work by finding latent variables in the original data with which to perform linear regression. PLS is considered to be one of the best tools for modeling the underlying structure between $\textbf{X}$ and $\textbf{Y}$ in feature space. As suggested its creator, the name "Projection onto Latent Structures" is a more descriptive acronym as the original data is projected onto latent structures which are then used for linear regression.
 
@@ -67,4 +71,26 @@ PLS is designed to model situations where there are a high number of predictors 
 PLS is also designed to perform well in situations where predictors are highly correlated and noisy. The data is projected onto underlying structures in order to handle correlation between predictors. Correlated predictors can often be better explained along a singular vector in feature space that captures all correlated predictors. This correlation will be captured in the latent structures that the data is project onto. These underlying structures captured in the latent variables will also be less sensitive to noise among the predictors.
 
 As previously mentioned, PLS models often follow a five step process outline by Lorenzo. To briefly review, these steps are a) estimate the covariance matrix, b) find the space associated with the first eigenvector, c) project the covariate and response matrices into the space from the previous step, d) perform linear regression between the projection of the covariate and response matrices, and e) remove the predicted information.
+
+The NIPALS-PLS algorithm (sometimes referred to as the PLS2 algorithm) is the first PLS model suggested by Wold and still one of the more commonly used PLS models. Similar basic PLS models almost exclusively differ in the method used to calculate the covariance matrix, especially when dealing with missing data.
+
+Before going into detail on the model it is important to note that all PLS algorithms require the data to be centered and standardized in order to prevent variables with different scales from exhibiting an outsize impact on the final outcome.
+
+We will assume that $\textbf{M} = \frac{1}{n} \sum_{i = 1}^n (\textbf{y}_i - \bar{\textbf{y}}) (\textbf{x}_i - \bar{\textbf{x}})^{\text{T}}$ will be used to estimate the covariance matrix unless otherwise noted. This estimate, $\textbf{M}$ is the empirical covariance matrix calculated using the observed data. Estimating $\textbf{M}$ is the most sensitive step as this estimation is sensitive to the curse of dimensionality.
+
+The NIPALS-PLS algorithm is as follows:
+
+For all $k \in [1:K]$,
+
+a) $\textbf{u}_k = \overrightarrow{\text{RSV}}(\textbf{M}_k)$
+
+b) $\textbf{t}_k = \textbf{X}_k \textbf{u}_k$
+
+c) $\textbf{p}_k = \frac{\textbf{X}_k^{\text{T}}\textbf{t}_k}{\textbf{t}_k^{\text{T}}\textbf{t}_k}$
+
+d) $\textbf{c}_k = \frac{\textbf{Y}_k^{\text{T}}\textbf{t}_k}{\textbf{t}_k^{\text{T}}\textbf{t}_k}$
+
+e) $\textbf{X}_{k + 1} = \textbf{X}_k - \textbf{t}_k \textbf{p}_k^{\text{T}}$, $\textbf{Y}_{k + 1} = \textbf{Y}_k - \textbf{t}_k \textbf{c}_k^{\text{T}}$
+
+Walking through these steps; a) finds the vector that explains the most variance in the covariance matrix for the remaining data, b) estimates the score, c) and d) estimate the linear regression matrices for $\textbf{X}$ and $\textbf{Y}$, and e) deflates the data.
 

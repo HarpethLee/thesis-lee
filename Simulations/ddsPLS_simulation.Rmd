@@ -556,3 +556,121 @@ sim9_pls <- ddsPLS(sim_9$X, sim_9$Y,
                    verbose = TRUE)
 ```
 Still works when $n<q$ and $p<q$.
+
+```{r, cache=TRUE}
+set.seed(12)
+
+sim_9 <- sim_data(n = 100, p = 200, q = 5, noise_weight = 0.1)
+```
+
+```{r, cache=TRUE}
+sim9_pls <- ddsPLS(sim_9$X, sim_9$Y,
+                   verbose = TRUE)
+```
+```{r, cache=TRUE}
+set.seed(167)
+
+sim_10 <- sim_data(n = 100, p = 200, q = 5, noise_weight = 0.25)
+```
+
+```{r, cache=TRUE}
+sim10_pls <- ddsPLS(sim_10$X, sim_10$Y,
+                   verbose = TRUE)
+```
+
+```{r, cache=TRUE}
+set.seed(902)
+
+sim_11 <- sim_data(n = 100, p = 200, q = 5, noise_weight = 0.5)
+```
+
+```{r, cache=TRUE}
+sim11_pls <- ddsPLS(sim_11$X, sim_11$Y,
+                   verbose = TRUE)
+```
+
+As noise increases, the model performance predictably increases.
+
+```{r}
+var_func <- function(noise_weight){
+   sim <- sim_data(n = 100, p = 200, q = 5, noise_weight = noise_weight)
+   mod <- ddsPLS(sim$X, sim$Y)
+   if(!is.null(tail(mod$varExplained$Cumu, n=1))) {
+     return(c(noise_weight, tail(mod$varExplained$Cumu, n=1)))
+   }
+}
+
+apply(matrix(c(1:10/10), nrow = 1), MARGIN = 2, var_func)
+```
+
+```{r, cache=TRUE}
+noise_test <- apply(matrix(c(1:200/5), nrow = 1), MARGIN = 2, var_func)
+```
+
+```{r, cache=TRUE}
+noise_test <- as.data.frame(do.call(rbind, noise_test))
+colnames(noise_test) <- c("Noise", "Var_Explained")
+
+plot(noise_test$Noise, noise_test$Var_Explained)
+```
+As we would predict, model performance decreases as the amount of noise increases. Initially, model performance decreases at a fairly rapid rate before becoming more gradual. Eventually, we would expect the percent variance explained to go to 0.
+
+
+```{r}
+samp_func <- function(n, noise_weight){
+   sim <- sim_data(n = n, p = 100, q = 5, noise_weight = noise_weight)
+   mod <- ddsPLS(sim$X, sim$Y)
+   if(!is.null(tail(mod$varExplained$Cumu, n=1))) {
+     return(c(n, tail(mod$varExplained$Cumu, n=1)))
+   }
+}
+```
+
+```{r, cache=TRUE}
+samp_test <- apply(matrix(c(seq(from = 25, to = 95, by = 10),
+                            seq(from = 100, to = 500, by = 50)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   samp_func,
+                   noise_weight = 7)
+```
+
+```{r, cache=TRUE}
+samp_test <- as.data.frame(t(samp_test))
+colnames(samp_test) <- c("n", "Var_Explained")
+
+plot(samp_test$n, samp_test$Var_Explained)
+```
+```{r, cache=TRUE}
+samp_test <- apply(matrix(c(seq(from = 25, to = 95, by = 10),
+                            seq(from = 100, to = 500, by = 50)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   samp_func,
+                   noise_weight = 20)
+```
+
+```{r, cache=TRUE}
+samp_test <- as.data.frame(t(samp_test))
+colnames(samp_test) <- c("n", "Var_Explained")
+
+plot(samp_test$n, samp_test$Var_Explained)
+```
+
+```{r, cache=TRUE}
+samp_test <- apply(matrix(c(seq(from = 25, to = 95, by = 10),
+                            seq(from = 100, to = 1500, by = 100)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   samp_func,
+                   noise_weight = 7)
+```
+
+```{r, cache=TRUE}
+samp_test <- as.data.frame(t(samp_test))
+colnames(samp_test) <- c("n", "Var_Explained")
+
+plot(samp_test$n, samp_test$Var_Explained)
+```
+
+Model performance seems to be much more variable at a low sample size before stabilizing. It looks like there may be a slight improvement as model size increases however this would need more inquiry. I am curious as to why models with small sample size can perform much better than those based on a larger sample size.

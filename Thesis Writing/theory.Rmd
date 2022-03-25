@@ -57,6 +57,15 @@ $$
 
 ## Latent Variable Models
 
+Latent variable models such as PCR and PLS are built on the assumption that there exists a structure linking the predictors and response variables that isn't directly captured in the data. There are two ways we can try and conceptualize these latent variables, either as being derived from the observed data or being used to generate the observed data. In this case, it is most helpful to think of latent variables as generating the observed data.
+
+We will assume that $\textbf{X} = \phi \textbf{A} + \epsilon_X$ and $\textbf{Y} = \phi \textbf{D} + \epsilon_Y$. Here $\phi$ is a matrix of latent variables linking $\textbf{X}$ and $\textbf{Y}$. $\textbf{A}$ and $\textbf{D}$ are the transformation applied to $\phi$ to generate $\textbf{X}$ and $\textbf{Y}$. $\epsilon_X$ and $\epsilon_Y$ are random noise.
+
+$\textbf{X} \in \mathbb{R}_{n \times p}$ and $\textbf{Y} \in \mathbb{R}_{n \times q}$. Thus, $\phi \in \mathbb{R}_{n \times \mathcal{K}}$, $\textbf{A} \in \mathbb{R}_{\mathcal{K} \times p}$,and $\textbf{D} \in \mathbb{R}_{\mathcal{K} \times q}$. Note that $\mathcal{K} \neq K$ where $K$ is the number of components that will be used in a PLS model.
+
+Since all possible variance is explained by $\phi$, $\textbf{A}$, and $\textbf{D}$ we will find that $\text{Cov}(\phi, \epsilon_X) = \text{Cov}(\phi, \epsilon_Y) = \text{Cov}(\epsilon_X, \epsilon_Y) = 0$. Furthermore, $\text{Var}(\textbf{X}) = \textbf{A}\textbf{A}^\text{T} + \text{Var}(\epsilon_X)$ and $\text{Var}(\textbf{Y}) = \textbf{D}\textbf{D}^\text{T} + \text{Var}(\epsilon_Y)$. Finally, $\text{Cov}(\textbf{X}, \textbf{Y}) = \textbf{D}^{\text{T}}\textbf{A}$.
+
+While it may seem intuitive to build a model of the form $\textbf{Y} = \textbf{B} \textbf{X} + \epsilon$ where $\textbf{B}$ satisfies $\textbf{A}\textbf{B} = \textbf{D}$. This only provides a unique answer under certain circumstances. Instead we want to formulate a model that is more similar to how the data is structured Thus, our model will be of the form $\textbf{X} = \textbf{t} \textbf{P} + \epsilon_X$ and $\textbf{Y} = \textbf{t} \textbf{C} + \epsilon_Y$.
 
 
 
@@ -71,6 +80,10 @@ PLS is designed to model situations where there are a high number of predictors 
 PLS is also designed to perform well in situations where predictors are highly correlated and noisy. The data is projected onto underlying structures in order to handle correlation between predictors. Correlated predictors can often be better explained along a singular vector in feature space that captures all correlated predictors. This correlation will be captured in the latent structures that the data is project onto. These underlying structures captured in the latent variables will also be less sensitive to noise among the predictors.
 
 As previously mentioned, PLS models often follow a five step process outline by Lorenzo. To briefly review, these steps are a) estimate the covariance matrix, b) find the space associated with the first eigenvector, c) project the covariate and response matrices into the space from the previous step, d) perform linear regression between the projection of the covariate and response matrices, and e) remove the predicted information.
+
+
+#### NIPALS-PLS
+
 
 The NIPALS-PLS algorithm (sometimes referred to as the PLS2 algorithm) is the first PLS model suggested by Wold and still one of the more commonly used PLS models. Similar basic PLS models almost exclusively differ in the method used to calculate the covariance matrix, especially when dealing with missing data.
 
@@ -93,4 +106,57 @@ d) $\textbf{c}_k = \frac{\textbf{Y}_k^{\text{T}}\textbf{t}_k}{\textbf{t}_k^{\tex
 e) $\textbf{X}_{k + 1} = \textbf{X}_k - \textbf{t}_k \textbf{p}_k^{\text{T}}$, $\textbf{Y}_{k + 1} = \textbf{Y}_k - \textbf{t}_k \textbf{c}_k^{\text{T}}$
 
 Walking through these steps; a) finds the vector that explains the most variance in the covariance matrix for the remaining data, b) estimates the score, c) and d) estimate the linear regression matrices for $\textbf{X}$ and $\textbf{Y}$, and e) deflates the data.
+
+
+The NIPALS-PLS algorithm maximizes $\textbf{v}^\text{T}\textbf{M}_k \textbf{u}$ with the constraint $\textbf{v}^\text{T} \textbf{v} = \textbf{u} \textbf{u}^\text{T} = 1$. The only parameter that needs tuning is $K$, the number of components used in the model.
+
+
+#### sPLS
+
+Here we will discuss a sparse PlS algorithm outlined by Le Cao et.al. It is important to note that there exist other sparse PLS algorithms most notably the one created by Chun and Keles.
+
+First we must define the soft-thresholding function $S_{\lambda}(\textbf{M}) = \text{argmin} \left( ||\textbf{M} - \boldsymbol{\Sigma}||^2 + 2\lambda|\boldsymbol{\Sigma}| \right)$ with $\boldsymbol{\Sigma} \in \mathbb{R}^{q \times p}$ and where $\textbf{M}$ is again our estimate of the covariance matrix.
+
+The sPLS algorithm is as follows:
+
+For all $k \in [1:K]$,
+
+$\text{a}^{\dagger}$) Start with initial $\textbf{v}_k$ and iterate until the two steps converge.
+
+  $\text{i}^{\dagger}$) $\textbf{u}_k = S_{\lambda_u^k}(\textbf{M}_k^\text{T} \textbf{v}_k)$, $\textbf{u}_k = \frac{\textbf{u}_k}{||\textbf{u}_k||}$
+  
+  $\text{ii}^{\dagger}$) $\textbf{v}_k = S_{\lambda_v^k}(\textbf{M}_k^\text{T} \textbf{u}_k)$, $\textbf{v}_k = \frac{\textbf{v}_k}{||\textbf{v}_k||}$
+
+
+b) $\textbf{t}_k = \textbf{X}_k \textbf{u}_k$
+
+c) $\textbf{p}_k = \frac{\textbf{X}_k^{\text{T}}\textbf{t}_k}{\textbf{t}_k^{\text{T}}\textbf{t}_k}$
+
+d) $\textbf{c}_k = \frac{\textbf{Y}_k^{\text{T}}\textbf{t}_k}{\textbf{t}_k^{\text{T}}\textbf{t}_k}$
+
+e) $\textbf{X}_{k + 1} = \textbf{X}_k - \textbf{t}_k \textbf{p}_k^{\text{T}}$, $\textbf{Y}_{k + 1} = \textbf{Y}_k - \textbf{t}_k \textbf{c}_k^{\text{T}}$
+
+Notice that step a) is the only step that differs from the NIPALS-PLS algorithm. This is where sparsity is imposed upon $\textbf{u}$ and $\textbf{v}$ which are used to calculate the score and loadings. Note that the sparsity is only directly imposed on $\textbf{X}$.
+
+The algorithm minimizes $||(n-1)\textbf{M}_k - \textbf{v}\textbf{u}^\text{T}||^2 + \lambda_u^k|\textbf{u}| + \lambda_v^k|\textbf{v}|$ for $\textbf{u}$ and $\textbf{v}$ with the constraint $\textbf{v}^\text{T} \textbf{v} = \textbf{u} \textbf{u}^\text{T} = 1$. sPLS has $2K + 1$ parameters with two tuning parameters for each component and then the number of components.
+
+#### Data-driven Sparse Partial Least Squares
+
+Data-driven sparse partial least squares(ddsPLS) is a new PLS method recently proposed by Lorenzo. Unlike previous sparse partial least squares algorithms, ddsPLS directly imposes sparisty on the empirical covariance matrix instead of its eigenvector decomposition.
+
+a) $\normalsize \textbf{u}_k = \overrightarrow{RSV}(S_{\lambda_k}(M_{k}))$, $\normalsize \textbf{v}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}({M^{(r)}}^T))$
+
+b) $\normalsize \textbf{t}_k = \textbf{X}_{k} \textbf{u}_k$
+
+c) $\normalsize \textbf{p}_k = \frac{{\textbf{X}_{k}}^T \textbf{t}_k}{{\textbf{t}_k}^T \textbf{t}_k}$
+
+d) $\normalsize \Pi_k = \text{diag}\left(\{\delta_{\neq 0}(\textbf{v}_k)_j \}_{j \in [1:q]} \right)$
+  $\normalsize \textbf{c}_k = \text{argmin}|| \textbf{Y}_{k} \Pi_r - \textbf{t}_k \textbf{V}^T||^2 = \frac{({\textbf{Y}_{k} \Pi_k})^T \textbf{t}_k}{{\textbf{t}_k}^T \textbf{t}_k}$
+
+e) $\normalsize \textbf{X}_{k+1} = \textbf{X}_{k} - \textbf{t}_k \textbf{p}_k^T$
+  $\normalsize \textbf{Y}_{k+1} = \textbf{Y}_{k} - \textbf{t}_k \textbf{c}_k^T$
+  
+Note that if $\lambda = 0$ the outcome is identical to the NIPALS-PLS algorithm.
+
+ddsPLS maximizes $\textbf{v}^\text{T} S_{\lambda_k}(\textbf{M}_k^\text{T}) \textbf{u}$ for $\textbf{u}$ and $\textbf{v}$ with the constraint $\textbf{v}^\text{T} \textbf{v} = \textbf{u} \textbf{u}^\text{T} = 1$. The ddsPLS algorithm has $K + 1$ parameters as there is only one parameter that needs to be maximized for each component. This gives it a better computation time when compared to other sparse PLS algorithms as cross validation or bootstrapping only needs to be performed for one parameter per component.
 

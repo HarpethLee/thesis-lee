@@ -39,7 +39,7 @@ The following plot shows the first two(and only) principals components for a set
 ```{r, echo=FALSE}
 library(MASS)
 
-rand_data <- mvrnorm(n = 20, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 4), nrow = 2))
+rand_data <- mvrnorm(n = 40, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 4), nrow = 2))
 
 pca_data <- prcomp(rand_data, scale. = TRUE)
 
@@ -80,6 +80,19 @@ PLS is designed to model situations where there are a high number of predictors 
 PLS is also designed to perform well in situations where predictors are highly correlated and noisy. The data is projected onto underlying structures in order to handle correlation between predictors. Correlated predictors can often be better explained along a singular vector in feature space that captures all correlated predictors. This correlation will be captured in the latent structures that the data is project onto. These underlying structures captured in the latent variables will also be less sensitive to noise among the predictors.
 
 As previously mentioned, PLS models often follow a five step process outline by Lorenzo. To briefly review, these steps are a) estimate the covariance matrix, b) find the space associated with the first eigenvector, c) project the covariate and response matrices into the space from the previous step, d) perform linear regression between the projection of the covariate and response matrices, and e) remove the predicted information.
+
+
+Like PCA, PLS also require all variables to be standardized with $\mu = 0$ and $\sigma^2 = 1$. We then find the $m$th latent variable $\textbf{z}_m$ using the following formula
+$$
+\textbf{z}_m = \sum_{i = 1}^p \hat{\varphi}_{mi} \textbf{x}_j^{(m-1)} 
+$$
+where $\hat{\varphi}_{mi} = \langle \textbf{x}_j^{(m-1)},\textbf{y} \rangle$. \bigskip
+
+We then find the regression coefficient $\hat{\theta}_m$ for $\textbf{z}_m$ as follows
+$$
+\hat{\theta}_m = \frac{\langle \textbf{z}_m , \textbf{y} \rangle}{\langle \textbf{z}_m , \textbf{z}_m \rangle}
+$$
+Note that this is identical to the formula used in classic linear regression and PCR at this step. \bigskip
 
 
 #### NIPALS-PLS

@@ -9,13 +9,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Dimension Reduction
 
-  Dimension reduction is a common technique used for working with large data sets with the goal moving data from a high-dimensional feature space to a low-dimensional feature space while retaining key features of the original data. Approaches to dimension reduction can generally broken into one of two categories; feature selection and feature extraction. Feature selection techniques remove unneeded features from the data. For example, feature selection before building a regression model will often include remove predictors with low correlation to the response variable and predictors with high correlation.
+  Dimension reduction is a common technique used for working with large data sets with the goal moving data from a high-dimensional feature space to a low-dimensional feature space while retaining key features of the original data.  The feature space is the mathematical space which our data resides in. For example, if our data consists of observations of 10 variables that take real values, our feature space will be $\mathbb{R}^{10}$. By moving data to a lower dimensional feature space, we make the data more interpretable and easier to work with. Furthermore, we can also remove features of the data that aren't relevant as these features may interfere with relevant information.
+  Approaches to dimension reduction can generally broken into one of two categories; feature selection and feature extraction. Feature selection techniques remove unneeded features from the data. For example, feature selection before building a regression model will often include remove predictors with low correlation to the response variable and predictors with high correlation.
   Feature extraction techniques will create a new set of features that capture relevant information about the original data. For example, a feature extraction technique may create linear combinations of our original predictors. It is important to note that feature selection will return a subset of variables from the original data set while feature extraction will return a set of new variables.
+  Commonly used dimension reduction tehcniques include best subset selection, LASSO, PCA, and adhoc variable selection. There is no single standard for deciding when and how to perform dimension reduction as it depends on a number of factors including but not limited to the size of the dataset, the methods being used, and the amount of precision needed in results. Dimension reduction is commonly used with large datasets to remove features that are mostly noise and to make computations less costly. In addition, dimesnion reduction can be used to make models more interpretable. For example, when performing linear regression with a data set originally containing 25 predictors one may select only 5 of the predictors to include in the model in order for the model to be simpler and easier to interpret.
   
 
 ## Curse of Dimensionality
 
-  At first, dimension reduction may seem like a counter intuitive approach to take when working with data. It seems that the more features we have, the more we should be able to learn about our data. However, when working with large datasets, the curse of dimensionality comes into play. The curse of dimensionality is a term used to refer to a variety of issues that working with high dimensional data presents. As the dimension of feature space increases, data tends to become increasingly sparse making trends in data more difficult to recognize. One way to think of how this problem manifests is to consider how the ratio of the volume of ball and the hypercube containing the ball changes as the dimension $d$ increases.
+  At first, dimension reduction may seem like a counter intuitive approach to take when working with data. It seems that the more features we have, the more we should be able to learn about our data. However, when working with large datasets, the curse of dimensionality comes into play. The curse of dimensionality is a term used to refer to issues that arise due to the size of the feature space. As the dimension of feature space increases, data tends to become increasingly sparse making trends in data more difficult to recognize. One way to think of how this problem manifests is to consider how the ratio of the volume of ball and the hypercube containing the ball changes as the dimension $d$ increases.
 
   The volume of a ball, $B$, of radius $r$ in $n$ dimensions is given by
 $$
@@ -31,9 +33,9 @@ $$
 \frac{\text{Vol}(B)}{\text{Vol}(C)} = \frac{\pi^{\frac{n}{2}}}{\Gamma(\frac{n}{2}+1)\cdot2^n} \text{ so } \text{lim}_{n \to \infty}\frac{\text{Vol}(B)}{\text{Vol}(C)}=0
 $$
 
-Consider the case where $r=1$, 
+Consider the case where the ball has radius 1, 
 
-```{r}
+```{r, echo=F, warning=FALSE}
 library(gt)
 
 ratio_df <- data.frame(n = c(1,2,5,10,25,100),
@@ -42,48 +44,26 @@ ratio_df <- data.frame(n = c(1,2,5,10,25,100),
 gt(ratio_df)
 ```
 
+Table showing how the ratio of the volume of a ball to the volume of a hybercube decreases as the number of dimensions increases.
 
-Thus, we can expect the number of points within distance 1 of a point will decrease as the dimension of data increases.
+
+Thus, we can expect the number of points within distance 1 of a point will decrease to 0 as the dimension of data increases.
 
 Another problem that arises from high dimensional data is computational time. The computation complexity of fitting a linear regression model to an $n\times p$ matrix of predictors is $O(np^2+p^3)$ (many programs will not perform the full matrix inversion so the complexity is usually smaller in practice however the general principle of computational complexity increasing holds). This will quickly balloon for large $p$. More troubling in high dimensions is that for $p$ predictors, there are $2^p$ possible combinations of predictors making techniques such as $\textit{Best Subset Selection}$ computationally prohibitive.
+
+Working with high dimensional data presents a number of issues which make it more difficult to extract meaningful finding from data. By using dimension reduction techniques we can mitigate many of these issues however many feature selection techniques will be less successful as they require us to discard a large amount of the data and may have a hard time finding the most meaningful features. Instead, we may want to turn to extraction methods that project the data into a lower dimensional space while still maintaining as much of the structure as we can.
+
 
 ## Principal Component Analysis
 
   Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
     PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$.
-    The algorithm for finding the first principal component of a standardized $n \times p$ data matrix $\textbf{X}$ is as follows:
-$$
-\textbf{w}_1 = \text{argmax}_{||\textbf{w}||=1} \Big\{ \textbf{w}^T \textbf{X}^T\textbf{X} \textbf{w} \Big\}
-$$
-Note that $\textbf{X}^T\textbf{X}$ is the covariance matrix for $\textbf{X}$. For all following components, we will find the matrix $\hat{\textbf{X}}_k$ such that all variance explained by the first $k-1$ principal components is removed. This is done by finding
-$$
-\hat{\textbf{X}}_k = \textbf{X} - \sum_{j = 1}^{k-1} \textbf{X} \textbf{w}_j \textbf{w}_j^T
-$$
-We then use the same equation used to find $\textbf{w}_1$ to find the $k$th principle component, replacing $\textbf{X}$ with $\hat{\textbf{X}}_k$.
-  Note that principal components can often be used for latent variables.
+
   
 ## Linear Regression
 
   Linear regression is perhaps the most commonly used regression method given its simplicity and that it often yields fairly well performing models. Many other regression techniques use linear regression as a foundation. Linear regression works to find the line in $n$ space that minimizes the Mean Squared Error (the squared distance between the line and observed data). The MSE is used in order to ensure that there is a unique answer. In linear regression we are looking for terms $\beta_0,...,\beta_n$ such that
-$$
-\sum_{i=1}^p (y_i - \hat{y_i})^2
-$$
-is minimized where
-$$
-\hat{y} = \beta_0 + \beta_1 \cdot x_1 + ... + \beta_n x_n
-$$
-Note that we are working with a $n+1 \times p$ data frame with $n$ predictors, 1 response variable, and $p$ observations. \bigskip
 
-We can find the vector of regression coefficients $\boldsymbol{\beta}$ using linear algebra by solving the equation 
-$$
-\boldsymbol{\beta} = (\textbf{X}^T \textbf{X})^{-1} \textbf{X} \textbf{Y}
-$$
-where $\textbf{X}$ is an $n \times p$ matrix of predictors and $\textbf{Y}$ is a $1 \times p$ matrix of the response variable.
-
-Alternatively, we can find $\beta_i$ as follows,
-$$
-\beta_i = \frac{\langle \textbf{x}_i, \textbf{y} \rangle}{\langle \textbf{x}_i, \textbf{x}_i \rangle}
-$$
 
 
 ## Principal Component Regression
@@ -103,18 +83,6 @@ For high dimensional data, PCR can avoid problems of over fitting that occur wit
 
 Partial Least Square (PLS) is a regression technique with similarities to PCR. Unlike PCR, PLS considers the covariance matrix instead of the variance matrix. By using the covariance matrix, we ensure that the latent variables of each order will have the most possible correlation with the response variable. For example, the first principle component may only be able to explain most of the variance in the predictors but very little in the response whereas the first component in PLS will explain as much of the variance in the response as possible. This allows it to make more accurate predictions than PCR when using models of the same complexity.
 
-Like PCA, PLS also require all variables to be standardized with $\mu = 0$ and $\sigma^2 = 1$. We then find the $m$th latent variable $\textbf{z}_m$ using the following formula
-$$
-\textbf{z}_m = \sum_{i = 1}^p \hat{\varphi}_{mi} \textbf{x}_j^{(m-1)} 
-$$
-where $\hat{\varphi}_{mi} = \langle \textbf{x}_j^{(m-1)},\textbf{y} \rangle$. \bigskip
-
-We then find the regression coefficient $\hat{\theta}_m$ for $\textbf{z}_m$ as follows
-$$
-\hat{\theta}_m = \frac{\langle \textbf{z}_m , \textbf{y} \rangle}{\langle \textbf{z}_m , \textbf{z}_m \rangle}
-$$
-Note that this is identical to the formula used in classic linear regression and PCR at this step. \bigskip
-
 
 
 ## $L_1$ Sparsification
@@ -122,18 +90,6 @@ Note that this is identical to the formula used in classic linear regression and
 $L_1$ sparsification is a common shrinkage method used to avoid over fitting models. The $L_1$ penalty is most commonly used in the LASSO model (it is sometimes referred to as the LASSO penalty). The $L_1$ penalty is added to a model by adding a term of $\lambda \sum_{i = 1}^p | \beta_i|$ where $\lambda$ is a parameter for the model. Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
 
 !Add that diagram here!
-
-
-
-##  Sections to add
-  PCA +Linear Regression?
-  PCR
-  PLS
-  $L^1$ Sparsification
-  PLS1 and PLS2 + algorithms
-  Multivariate regression
-  
-  Write about data
   
   
 ## Why Partial Least Squares?
@@ -142,7 +98,7 @@ Regression models that use latent variables can help with the curse of dimension
 
 Models that use latent variables will be able to avoid this problem by projecting the data into a lower dimensional feature space so that $n >p$. Since we project from the full feature space less information about the data will be lost than by simply performing variable selection.
 
-Sparse partial least squares further mitigates problems of over fitting the data as it...
+Sparse partial least squares further mitigates problems of over fitting the data as it will perform variable shrinkage and selection. Features of the data that do not have much predictive power won't be included in the final model or their impact will be greatly reduced.
 
 
 
@@ -191,23 +147,3 @@ The use of bootstrapping for parameter selection in the ddsPLS model differs fro
 ddsPLS and other PLS models often use the $Q^2$ metric to assess model performance. $Q^2$ is closely related to the more common $R^2$ metric as both are calculated using the formula $1 - \frac{\text{RSS}}{\text{TSS}}$ where RSS is the residual sum of squares and TSS is the total sum of squares. $R^2$ is calculated using the data the model is built using while $Q^2$ is calculated using data that the model isn't built on. Typically this is done as part of cross validation with $Q^2$ calculated using the excluded data. The $Q^2$ metric was introduced by Stone and Gessier while Tennehaus first suggested it uses to assess PLS models.
 
 Despite the similarity of the $R^2$ and $Q^2$ metrics, the two metrics will improve under different conditions for the model. Maximizing $R^2$ will favor more complex models that closely fit the training data while maximizing $Q^2$ will favor less complex models that address the underlying structure of the data. Initially, increasing model complexity will improve both metrics. However, past a certain threshold, increasing model complexity will cause $Q^2$ to decrease while $R^2$ to continues to increase. Due to this, minimizing $R^2 - Q^2$ is recommended for selecting values of $\lambda_k$ for the ddsPLS model.
-
-
-
-## Junk
-
-1. Data-Driven Sparse Partial Least Squares - Hadrien Lorenzo
-
-  Proposes ddsPLS model, subspace selection is done based on variable selection. Preliminary results suggest the model performs better both with variable selection and overall performance. Unlike many similar models, ddsPLS performs parameter selection through bootstrapping instead of cross validation.
-
-2. Can We Beat Over-fitting - Olivier Cloarec
-
-  Explores problem of over fitting and suggest modified NIPALS PLS algorithm to offer improvement.
-
-3. Globally Sparse PLS Regression - Liu Tzu-Yu
-
-  
-
-4. On the over estimation of Random Forest's out-of-bag error - Silke Janitza
-5. Some aspects of response variable selection and estimation in multivariate linear regression - Jianhua Hu
-

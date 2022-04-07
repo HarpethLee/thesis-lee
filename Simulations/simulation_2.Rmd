@@ -18,7 +18,7 @@ library(pls)
 
 ### Sim Data Function
 
-```{r Sim Data Function}
+```{r Sim Data Function 2}
 sim_data <- function(n = 5, p = 10, q = 2, R = 5, x = 3, noise_weight = 1, D_method = "new", noise_type = "mvrnorm") {
   
   # Ensures x<=R, if x>R the dimension of A is incompatible with phi
@@ -545,4 +545,5 @@ abline(reg, col = "red")
 ```{r}
 reg$coefficients
 ```
+
 

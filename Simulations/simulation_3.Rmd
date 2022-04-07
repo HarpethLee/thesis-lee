@@ -1,0 +1,449 @@
+---
+title: "More Simulations"
+author: "Harpeth Lee"
+date: "3/29/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(ddsPLS2)
+library(MASS)
+library(pls)
+library(mixOmics)
+library(glmnet)
+library(ggplot2)
+```
+
+### New Data Simulation Method
+
+```{r Sim Data Function}
+sim_data <- function(n = 25, p = 50, q = 5, R = 5, noise_weight = 1, D_method = "newest", noise_type = "rnorm", struc = "simple") {
+
+  # Creates A and D matrices
+  
+  Row1 <- c(rep(1, 5), rep(0, p - 5))
+  Row2 <- c(rep(0, 5), rep(1, 10), rep(0, p - 15))
+  
+  reps1 <- round(3*R/5)
+  reps2 <- R - reps1
+  
+  A1 <- do.call("rbind", replicate(3, Row1, simplify = FALSE))
+  A2 <- do.call("rbind", replicate(2, Row2, simplify = FALSE))
+  
+  A <- rbind(A1, A2)
+  
+  if(struc == "complex") {
+    R = 13
+    
+    Row3 <- c(rep(0, 15), rep(1, 5), rep(0, p - 20))
+    Row4 <- c(rep(0, 20), 1, rep(0, p - 21))
+    Row5 <- c(rep(0, 21), rep(1, 2), rep(0, p - 23))
+    
+    A3 <- do.call("rbind", replicate(3, Row3, simplify = FALSE))
+    A4 <- do.call("rbind", replicate(2, Row4, simplify = FALSE))
+    A5 <- do.call("rbind", replicate(3, Row5, simplify = FALSE))
+    
+    A <- rbind(A, A3, A4, A5)
+    
+  }
+  
+   
+  if(D_method == "new") {
+     D <- matrix(rep(1, R*q), nrow = R)
+  } else if(D_method == "diag") {
+    D <- diag(max(q, R))[1:R, 1:q]
+  } else {
+     q_s <- round(q/4)
+     
+     Row1D <- c(rep(1, q_s), rep(0, q - q_s))
+     Row2D <- c(rep(0, q_s), rep(1, q_s), rep(0, q - 2*q_s))
+     
+     reps1D <- round(3*R/5)
+     reps2D <- R - reps1D
+     
+     D1 <- do.call("rbind", replicate(reps1D, Row1D, simplify = FALSE))
+     D2 <- do.call("rbind", replicate(reps2D, Row2D, simplify = FALSE))
+     
+     D <- rbind(D1, D2)
+  }
+  
+  d <- ncol(A)+nrow(A)+ncol(D)
+  psi <- MASS::mvrnorm(n = n,mu = rep(0,d),Sigma = diag(d))
+  phi <- psi[,1:nrow(A)]
+  
+  phi <- matrix(rnorm(n*R), nrow = n)
+  
+  
+  # If `rnorm` is used to generate noise a lower noise weight should be used as
+  # the function is more sensitive since we directly weight results and not the 
+  # covariance matrix.
+  
+  if(noise_type == "mvrnorm") {
+    epsilon_X <- mvrnorm(n = dim(phi)[1],
+                       rep(0, dim(A)[2]),
+                       Sigma = noise_weight*diag(dim(A)[2]))
+  
+    epsilon_Y <- mvrnorm(n = dim(phi)[1],
+                       rep(0, dim(D)[2]),
+                       Sigma = noise_weight*diag(dim(D)[2]))
+  } else {
+   epsilon_X <- matrix(noise_weight*rnorm(n = n*p), nrow = n)
+   epsilon_Y <- matrix(noise_weight*rnorm(n = n*q), nrow = n) 
+  }
+  
+  X <- phi %*% A + epsilon_X
+  Y <- phi %*% D + epsilon_Y
+  
+  #X <- scale(X)
+  #Y <- scale(Y)
+  
+  list(X=X, Y=Y)
+}
+```
+
+```{r PLS Test Function}
+pls_test <- function(n, sim, func, passed_arg) {
+   # Splits into training and test
+   in_train <- round(n/3)
+   in_test <- round(2*n/3)
+   
+   split <- sample(c(rep(0, in_train), rep(1, in_test)))
+   
+   sim_train_X <- sim$X[split == 0, ]
+   sim_train_Y <- sim$Y[split == 0, ]
+   
+   sim_test_X <- sim$X[split == 1, ]
+   sim_test_Y <- sim$Y[split == 1, ]
+  
+    # Generates model using the training set and predicts RMSE
+   if(func == "ddsPLS") {
+     mod <- ddsPLS(sim_train_X, sim_train_Y)
+     
+     preds <- predict(mod, sim_test_X)
+     preds_ib <- predict(mod, sim_train_X)
+     
+     rmse <- sqrt(sum((preds$y_est - sim_test_Y)^2)/nrow(sim_test_Y))
+     
+     pred_mean_tr <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+     R2 <- 1 - (sum((preds_ib$y_est - sim_train_Y)^2)/sum((sim_train_Y - pred_mean_tr)^2))
+     
+     pred_mean_ts <- t(replicate(nrow(sim_test_Y), colMeans(sim_test_Y)))
+     Q2 <- 1 - (sum((preds$y_est - sim_test_Y)^2)/sum((sim_test_Y - pred_mean_ts)^2))
+     
+     ncomp <- mod$R
+     } else if(func == "pls") {
+     
+     df <- data.frame(X = I(sim_train_X), Y = I(sim_train_Y))
+     mod <- plsr(Y~X, data = df, ncomp = 10, method = "oscorespls", validation = "CV", scale = TRUE)
+     
+     R2 <- R2(mod)
+     Q2 <- colSums(R2$val, dims = 2)
+     
+     ncomp <- which(Q2 == max(Q2)) - 1
+     
+     ncomp <- unname(ncomp)
+     
+     if(ncomp == 0){
+       preds <- t(replicate(nrow(sim_test_Y), colMeans(sim_train_Y)))
+       preds_ib <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+     } else {
+       preds <- predict(mod, sim_test_X)[,,ncomp]
+       preds_ib <- predict(mod, sim_train_X)[,,ncomp]
+        }
+     
+     rmse <- sqrt(sum((preds - sim_test_Y)^2)/nrow(sim_test_Y))
+     
+     pred_mean_tr <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+     R2 <- 1 - (sum((preds_ib - sim_train_Y)^2)/sum((sim_train_Y - pred_mean_tr)^2))
+     
+     pred_mean_ts <- t(replicate(nrow(sim_test_Y), colMeans(sim_test_Y)))
+     Q2 <- 1 - (sum((preds - sim_test_Y)^2)/sum((sim_test_Y - pred_mean_ts)^2))
+     
+   } else if(func == "lasso") {
+     mod <- cv.glmnet(sim_train_X, sim_train_Y, family = "mgaussian")
+     
+     preds <- predict(mod, sim_test_X)[,,1]
+     preds_ib <- predict(mod, sim_train_X)[,,1]
+     
+     rmse <- sqrt(sum((preds - sim_test_Y)^2)/nrow(sim_test_Y))
+     
+     pred_mean_tr <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+     R2 <- 1 - (sum((preds_ib - sim_train_Y)^2)/sum((sim_train_Y - pred_mean_tr)^2))
+     
+     pred_mean_ts <- t(replicate(nrow(sim_test_Y), colMeans(sim_test_Y)))
+     Q2 <- 1 - (sum((preds - sim_test_Y)^2)/sum((sim_test_Y - pred_mean_ts)^2))
+     
+     ncomp <- NA
+     
+   } else {
+     colnames(sim_train_X) <- c(1:ncol(sim_train_X))
+     colnames(sim_test_X) <- c(1:ncol(sim_train_X))
+     colnames(sim_test_Y) <- c(1:ncol(sim_test_Y))
+     colnames(sim_train_Y) <- c(1:ncol(sim_test_Y))
+     
+     tune <- tune.spls(sim_train_X, sim_train_Y,
+                       validation = "Mfold",
+                       folds = 10,
+                       ncomp = 10,
+                       mode = "regression")
+     ncomp <- tune$choice.ncomp
+     
+     mod <- spls(sim_train_X, sim_train_Y, ncomp = ncomp, mode = "regression")
+ 
+     
+     if(ncomp == 0){
+       preds <- t(replicate(nrow(sim_test_Y), colMeans(sim_train_Y)))
+       preds_ib <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+       } else {
+         preds <- predict(mod, sim_test_X)
+         preds <- preds$predict[,,ncomp]
+         
+         preds_ib <- predict(mod, sim_train_X)
+         preds_ib <- preds_ib$predict[,,ncomp]
+        }
+     
+     rmse <- sqrt(sum((preds - sim_test_Y)^2)/nrow(sim_test_Y))
+     
+     pred_mean_tr <- t(replicate(nrow(sim_train_Y), colMeans(sim_train_Y)))
+     R2 <- 1 - (sum((preds_ib - sim_train_Y)^2)/sum((sim_train_Y - pred_mean_tr)^2))
+     
+     pred_mean_ts <- t(replicate(nrow(sim_test_Y), colMeans(sim_test_Y)))
+     Q2 <- 1 - (sum((preds - sim_test_Y)^2)/sum((sim_test_Y - pred_mean_ts)^2))
+   }
+   
+   out <- c(passed_arg, ncomp, rmse, R2, Q2, R2-Q2)
+   
+   return(out)
+}
+```
+
+
+#### New Simulation Noise Test
+
+```{r Noise Simulation Function}
+noise_eval <- function(noise_weight, func = "ddsPLS", n = 300, p = 100, q = 5){
+   sim <- sim_data(n = n, p = p, q = q, noise_weight = noise_weight, noise_type = "rnorm", struc = "complex")
+    
+   pls_test(n = n, sim = sim, func = func, passed_arg = noise_weight)   
+
+}
+```
+
+```{r, cache=TRUE}
+samp_test <- apply(matrix(c(seq(from = 0.25, to = 5, by = 0.25), 
+                            seq(from = 5.5, to = 10, by = 0.5)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   noise_eval)
+```
+
+```{r, fig.align='center'}
+samp_test <-as.data.frame(t(samp_test))
+colnames(samp_test) <- c("noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+
+reg <- lm(RMSE ~ noise_weight, data = samp_test)
+
+plot(samp_test$noise_weight, samp_test$RMSE)
+abline(reg, col = "red")
+
+plot(samp_test$noise_weight, samp_test$ncomp)
+```
+
+```{r, eval=FALSE}
+samp_test <- apply(matrix(c(seq(from = 0.25, to = 5, by = 0.25), 
+                            seq(from = 5.5, to = 10, by = 0.5)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   noise_eval,
+                   func = "spls")
+```
+
+```{r, fig.align='center', cache=TRUE}
+samp_test <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_noise_weight_1.csv")[,-1]
+colnames(samp_test) <- c("noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+
+reg <- lm(RMSE ~ noise_weight, data = samp_test)
+
+plot(samp_test$noise_weight, samp_test$RMSE)
+abline(reg, col = "red")
+
+plot(samp_test$noise_weight, samp_test$ncomp)
+```
+
+
+```{r, eval=FALSE}
+samp_test <- apply(matrix(c(seq(from = 0.25, to = 5, by = 0.25), 
+                            seq(from = 5.5, to = 10, by = 0.5)),
+                            nrow = 1),
+                   MARGIN = 2,
+                   noise_eval,
+                   func = "pls")
+```
+
+```{r, fig.align='center', cache=TRUE}
+samp_test <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_noise_weight_1.csv")
+
+reg <- lm(RMSE ~ noise_weight, data = samp_test)
+
+plot(samp_test$noise_weight, samp_test$RMSE)
+abline(reg, col = "red")
+
+plot(samp_test$noise_weight, samp_test$ncomp)
+```
+
+
+#### New Simulation Predictors Test
+
+```{r P Simulation Function}
+p_eval <- function(p, noise_weight = 1, n = 150, q = 5,func = "ddsPLS", struc = "complex"){
+   
+   # Randomly simulates data
+   sim <- sim_data(n = n, p = p, q = q, noise_weight = noise_weight, noise_type = "rnorm", struc = struc)
+   
+   # Passes Data to test function
+   pls_test(n = n, sim = sim, func = func, passed_arg = p)
+}
+```
+
+
+```{r}
+samp_test <- apply(matrix(seq(from = 50, to = 1000, by = 50),
+                            nrow = 1),
+                   MARGIN = 2,
+                   p_eval)
+```
+
+```{r, fig.align='center'}
+samp_test <-as.data.frame(t(samp_test))
+colnames(samp_test) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+
+reg <- lm(RMSE ~ p, data = samp_test)
+
+plot(samp_test$p, samp_test$RMSE)
+abline(reg, col = "red")
+```
+
+```{r}
+samp_test <- apply(matrix(seq(from = 50, to = 1000, by = 50),
+                            nrow = 1),
+                   MARGIN = 2,
+                   p_eval,
+                   func = "spls")
+```
+
+```{r, fig.align='center', cache=TRUE}
+samp_test <-as.data.frame(t(samp_test))
+colnames(samp_test) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+
+reg <- lm(RMSE ~ p, data = samp_test)
+
+plot(samp_test$p, samp_test$RMSE)
+abline(reg, col = "red")
+```
+
+It looks like ddsPLS performs much better than sPLS when a large number of meaningless predictors are added.
+I need to figure out how to select the ideal number of components for sPLS models to use and how to calculate the predicted values. Run more simulations to see how model performs. Compare to LASSO. Comparing the number of components. Add LASSO to the theory section.
+
+
+```{r, eval=FALSE}
+ddspls.p.reps <- replicate(100, p_eval(p = 1000))
+```
+
+```{r, eval=FALSE}
+spls.p.reps <- replicate(100, p_eval(p = 1000, func = "spls"))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.p.reps <- replicate(100, p_eval(p = 1000, func = "pls"))
+```
+
+
+```{r}
+ddspls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls.1000.reps.csv")
+spls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls.1000.reps.csv")
+pls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls.1000.reps.csv")
+
+ddspls.p.reps <- as.data.frame(t(ddspls.p.reps)[-1,])
+spls.p.reps <- as.data.frame(t(spls.p.reps)[-1,])
+pls.p.reps <- as.data.frame(t(pls.p.reps)[-1,])
+
+colnames(ddspls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+colnames(spls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+colnames(pls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+```
+
+```{r}
+t.test(ddspls.p.reps$RMSE, spls.p.reps$RMSE)
+t.test(ddspls.p.reps$RMSE, pls.p.reps$RMSE)
+
+ggplot(data = ddspls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  labs(title = "ddsPLS")
+
+ggplot(data = spls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 0:4, limits = c(-0.5,4.5))  +
+  labs(title = "sPLS")
+
+ggplot(data = pls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 0:4, limits = c(-0.5,4.5))  +
+  labs(title = "NIPALS-PLS")
+```
+ddsPLS performs better with a large number of predictors uncorrelated with the response. Here the mean RMSE of is significantly lower for ddsPLS compared to sPLS. We can also see that sPLS models fail to find the structure of the data while ddsPLS is able to. Note that the sPLS tuning algorithm must select at least 1 component, this does not mean that the model performs better than mean estimation.
+
+```{r, eval=FALSE}
+ddspls.p.reps <- replicate(100, p_eval(p = 500, n=3*250))
+```
+
+```{r, eval=FALSE}
+spls.p.reps <- replicate(100, p_eval(p = 500, n=3*250, func = "spls"))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.p.reps <- replicate(100, p_eval(p = 500, n=3*250, func = "pls"))
+```
+
+```{r}
+ddspls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls.500.reps.csv")
+spls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls.500.reps.csv")
+pls.p.reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls.500.reps.csv")
+
+ddspls.p.reps <- as.data.frame(t(ddspls.p.reps)[-1,])
+spls.p.reps <- as.data.frame(t(spls.p.reps)[-1,])
+pls.p.reps <- as.data.frame(t(pls.p.reps)[-1,])
+
+colnames(ddspls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+colnames(spls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+colnames(pls.p.reps) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
+```
+
+```{r}
+t.test(ddspls.p.reps$RMSE, spls.p.reps$RMSE)
+t.test(ddspls.p.reps$RMSE, pls.p.reps$RMSE)
+
+ggplot(data = ddspls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  xlab("Number of Components Built") +
+  labs(title = "ddsPLS", caption = "complex structure with n = 250 and p = 500") +
+  scale_x_continuous(breaks = 1:4, limits = c(0.5,4.5)) +
+  theme_light()
+
+ggplot(data = spls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  xlab("Number of Components Built") +
+  scale_x_continuous(breaks = 1:4, limits = c(0.5,4.5))  +
+  labs(title = "sPLS", caption = "complex structure with n = 250 and p = 500") +
+  theme_light()
+
+ggplot(data = pls.p.reps, aes(x = ncomp)) +
+  geom_bar() +
+  xlab("Number of Components Built") +
+  scale_x_continuous(breaks = 1:4, limits = c(0.5,4.5))  +
+  labs(title = "NIPALS-PLS", caption = "complex structure with n = 250 and p = 500") +
+  theme_light()
+```

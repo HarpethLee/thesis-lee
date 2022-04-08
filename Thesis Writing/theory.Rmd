@@ -55,6 +55,17 @@ $$
 \textbf{y} = \theta_0 + \sum_{i = 1}^k \theta_i \textbf{w}_i
 $$
 
+## L1 Sparsification check equation
+
+The $L_1$ penalty can be added to a model by adding a term of $\lambda \sum_{i = 1}^p | \beta_i|$ where $\lambda$ is a parameter for the model. For linear regression, coefficients for the model will then be found by finding $\{\beta_0,...,\beta_n\}$ such that the following is minimized
+$$
+\text{argmin} \left\{ \frac{1}{2} \sum_{i = 1}^n(y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij})^2 + \lambda \sum_{j = 1}^p |\beta_j| \right\}
+$$
+Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
+
+![Comparison of $L_1$(left) and $L_2$(right) norms. As we can see restraints on the $L_2$ norms prevent coefficients from being sent to 0. Image taken from ESLR.](/Users/johnlee/R Files/thesis-lee/Thesis Writing/lasso_img.png)
+
+
 ## Latent Variable Models
 
 Latent variable models such as PCR and PLS are built on the assumption that there exists a structure linking the predictors and response variables that isn't directly captured in the data. There are two ways we can try and conceptualize these latent variables, either as being derived from the observed data or being used to generate the observed data. In this case, it is most helpful to think of latent variables as generating the observed data.
@@ -67,6 +78,41 @@ Since all possible variance is explained by $\phi$, $\textbf{A}$, and $\textbf{D
 
 While it may seem intuitive to build a model of the form $\textbf{Y} = \textbf{B} \textbf{X} + \epsilon$ where $\textbf{B}$ satisfies $\textbf{A}\textbf{B} = \textbf{D}$. This only provides a unique answer under certain circumstances. Instead we want to formulate a model that is more similar to how the data is structured Thus, our model will be of the form $\textbf{X} = \textbf{t} \textbf{P} + \epsilon_X$ and $\textbf{Y} = \textbf{t} \textbf{C} + \epsilon_Y$.
 
+
+## Evaluating Model Performance
+
+While building models is a difficult task selecting the correct model to use may be even more difficult. We want to find a model that fits our original data well without overfitting it. Unlike when building a model, there is usually more than one criteria that we want our model to perform well with. Ultimately, model selection often ends up being a subjective process dependent on a variety of factors. While there are standard measures designed to evaluate the performance of a model, I advise against putting too much faith in any singular statistic.
+
+
+One of the most widely used statistics to evaluate model performance is the root mean squared error(RMSE). The RMSE is calculated using the formula
+$$
+RMSE = \sqrt{\frac{\sum_{j = 1}^q \sum_{i = 1}^n (\hat{y}_{i,j} - y_{i,j})^2}{n}}
+$$
+where $\hat{y}_{i,j}$ is the predicted value of a response variable. Here we want a low RMSE as this means that the model tends to estimate values close to the true value.
+
+Another popular statistic used is $R^2$. Simply, $R^2 = 1 - \frac{\text{RSS}}{\text{TSS}}$ where RSS is the real sum of squares and TSS is the total sum of squares. The RSS is calculated using the equation $\text{RSS} = \sum_{j = 1}^q \sum_{i = 1}^n  (\hat{y}_{i,j} - y_{i,j})^2$ while the TSS is calculated using $\text{RSS} = \sum_{j = 1}^q \sum_{i = 1}^n  (\bar{y}_{i,j} - y_{i,j})^2$ where $\bar{y}_{i,j}$ is the empirical mean of the observed data. The idea of $R^2$ is to evaluate how a model performs compared to using mean estimation. Mean estimation is perhaps the most crude form of regression available, if our model does not perform well when using the $R^2$ metric, it is almost always a sign that we should not use the model. Values of $R^2$ usually range between 0 and 1. Values less than 0 mean that the model performs worse than mean estimation. Values equal to 0 mean the two perform the same (usually this mean the model is just performing mean estimation). Values between 0 and 1 mean that the model performs better than mean estimation with larger values signifying better performance compared to mean estimation. If $R^2 = 1$ this means that the model is able to perfectly estimate every response value in the data.
+
+Before moving onto the next metric now is a good time to discuss test-training splits, cross validation(sometimes notated as CV), and bootstrapping.. All of these methods are used to try and answer questions about how the model will perform on data that is not used to train the model. Common to all of these methods is the idea of in-bag(IB) and out-of-bag(OOB) observations. IB observations are the data that are used to build our model while OOB observations are the data that the model is not built with that can be used to test it. All of the following methods are based on some permutation of this idea of creating IB and OOB groupings of the data.
+
+Test-training splits are probably the most basic of the three methods relying on splitting our data into two groups, the training group and the test group.  Here the IB group will be the training data and the OOB group will be the test data, these groups will not change during the process. To create the test and training sets we randomly split our data into two groups. Usually a smaller percentage of the data is relegated to the training set (e.g. 30% is assigned to the training set while the remaining 70% will be the test set). The model will then be built using the training data and assessed using the test data. This will help tend to help with overfitting as it will make sure the model can perform well on data that isn't used to build it. This still makes the assumption that our larger sample mirrors the general population that we hope to use the model with.
+
+Cross validation is one of the most common tools for model assessment and parameter tuning. Cross validation involves splitting the data into test and training sets multiple times and then assessing model performance in each instant. It can be helpful to think of cross validation as a repeated use of test-training splits. There are two commonly used types of cross validation, $K$-fold CV and Leave-one-out CV(LOOCV). $K$-fold CV randomly divides the data into $K$ equal sized groups and then uses $K-1$ of the groups as the training set and the remaining one as the test set. This is repeated $K$ times until all groups have been used as the test set. LOOCV is technically a form of $K$-fold where $K$ is equal to the total number of observations. Thus, the test set will only consist of 1 observation.
+
+$CV$ is often used to select parameters, as we will build models with a number of parameters and then assess its performance across parameters using cross validation. The choice of statistic used to assess parameter performance often varies depending on the model we are building although $R^2$ is a common choice. One of the problems with this approach is that it is computationally expensive as it requires the model to be built across a range of parameters. Due to this, when working with a large number of observations, it is generally advisable to use $K$-fold CV with a smaller number of folds (10 is often recommended) as this will require many fewer computations the LOOCV.
+
+Bootstrapping relies on randomly sampling with replacement from our data to build the test and training sets. When bootstrapping we will expect to see repeated values in the training set (no matter the size of our dataset we expect to see 63.2% in our bootstrap sample). The observations not included in the bootstrap sample will then be the test set.
+
+Following this discussion of IB and OOB observations and methods of generating them we will discuss the $Q^2$ statistic. $Q^2$ is very similar to the $R^2$ statistic with the only difference being that it is exclusively calculated using OOB observations. The $Q^2$ statistic is only commonly used when discussing PLS models. There is often some ambiguity as to what data is used to calculate the $R^2$ statistic. It can sometimes be calculated on the training set to help built the model or on the test set to evaluate model performance. Differentiating $R^2$ and $Q^2$ solves this ambiguity. $R^2$ for a test-training split $b$ is found with the equation
+$$
+R^2_b = 1 - \frac{\sum_{j = 1}^q \sum_{i \in IB(b)}  (\hat{y}_{i,j}^b - y_{i,j})^2}{\sum_{j = 1}^q \sum_{i \in IB(b)}  (\bar{y}_{i,j}^b - y_{i,j})^2}
+$$
+$Q^2$ for the split $b$ is calculated as follows
+$$
+Q^2_b = 1 - \frac{\sum_{j = 1}^q \sum_{i \in OOB(b)}  (\hat{y}_{i,j}^b - y_{i,j})^2}{\sum_{j = 1}^q \sum_{i \in OOB(b)}  (\bar{y}_{i,j}^b - y_{i,j})^2}
+$$
+where $\hat{y}_{i,j}^b$ are predictions from the model built using the training group $b$ and $\bar{y}_{i,j}^b$ are the mean estimates for rows of the training group $b$. We will then take the means across a $B$ different splits so that $\bar{R}^2_B = \frac{1}{B} \sum_{b = 1}^B R^2_b$ and $\bar{Q}^2_B = \frac{1}{B} \sum_{b = 1}^B Q^2_b$.
+
+Ideally we want a high $R^2$ and $Q^2$ meaning the model performs well with both the test and training data. In practice $R^2$ is almost always an inflated metric of performance and $Q^2$ will be more accurate for accessing model performance. For this reason minimizing $R^2 - Q^2$ may be used for parameter selection as low values indicate models that perform well on both IB and OOB observations. Although it may seem likely to pick parameters where both $R^2$ and $Q^2$ perform poorly, $R^2$ tends to increase more quickly and fall of more slowly than $Q^2$ leaving a difference at these extremes.
 
 
 ## Partial Least Squares

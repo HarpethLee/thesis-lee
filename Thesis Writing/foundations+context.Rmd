@@ -56,7 +56,7 @@ Working with high dimensional data presents a number of issues which make it mor
 
 ## Principal Component Analysis
 
-  Principal component analysis(PCA) is a commonly used unsupervised learning technique. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
+  Principal component analysis(PCA) is a commonly used unsupervised learning technique that can be used to reduce the dimension of data. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. These principal components will preserve as much of the structure of the data as possible while projecting it into lower dimensions. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
     PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$.
 
   
@@ -68,14 +68,8 @@ Working with high dimensional data presents a number of issues which make it mor
 
 ## Principal Component Regression
 
-Principal Component Regression (PCR) is a regression technique that uses principal components as predictors. To perform PCR, one first finds the desired number of principal components and then performs linear regression using the selected principal components as predictors. Letting $\textbf{w}_1, \textbf{w}_2,...,\textbf{w}_k$ be the first $k$ principal components of our predictors $\textbf{X}$. This will take the form 
-$$
-\textbf{y} = \theta_0 + \sum_{i = 1}^k \theta_i \textbf{w}_i
-$$
-where
-$$
-\theta_i = \frac{\langle \textbf{w}_i, \textbf{y} \rangle}{\langle \textbf{w}_i, \textbf{w}_i \rangle}
-$$
+Principal Component Regression (PCR) is a regression technique that uses principal components as predictors. To perform PCR, one first finds the desired number of principal components and then performs linear regression using the selected principal components as predictors.
+
 For high dimensional data, PCR can avoid problems of over fitting that occur with a large number of predictors. Furthermore, it can provide more interpretable models if the principal components can be linked to latent variables. PCR does have some drawbacks, since principal components only depend on variance within predictors, PCR can miss predictors that contribute little to variance among predictors but strongly explain variance among the response variable.
 
 
@@ -87,9 +81,11 @@ Partial Least Square (PLS) is a regression technique with similarities to PCR. U
 
 ## $L_1$ Sparsification
 
-$L_1$ sparsification is a common shrinkage method used to avoid over fitting models. The $L_1$ penalty is most commonly used in the LASSO model (it is sometimes referred to as the LASSO penalty). The $L_1$ penalty is added to a model by adding a term of $\lambda \sum_{i = 1}^p | \beta_i|$ where $\lambda$ is a parameter for the model. Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
+$L_1$ sparsification is a common shrinkage method used to avoid over fitting models. This method is referred to as adding an $L_1$ penalty, as a new term is introduced that penalizes the model for being overly complex. This penalty is generated using the $L_1$ norm, commonly known as the absolute value. The added penalty encourages the model to only give high weight (usually in the term of coefficients) to terms that have high predictive power in the model. The weighting of terms with lower predictive power is lowered ro shrunk thus this is called a shrinkage method.
 
-!Add that diagram here!
+Unlike many other common shrinkage methods such as the $L_2$ norm, using the $L_1$ norm will also perform variable selection. This is due to the fact that the $L_1$ norm will sometimes send the weighting of terms to 0, completely ignoring them in the model. Since some terms are eliminated from the model, model built using the $L_1$ norm will often be simpler as they depend on fewer terms. This is useful when working with high dimensional data sets as removing predictors will help with the curse of dimensionality.
+
+One difficulty with using the $L_1$ norm is that it introduces another parameter, $\lambda$ into the model that must be selected for. $\lambda$ is often referred to as the tuning parameter and decides how much model complexity should be penalized. Higher values of $\lambda$ will more heavily penalize the model causing fewer terms to be included and more shrinkage. The tuning parameter is usually selected using cross validation.
   
   
 ## Why Partial Least Squares?

@@ -25,39 +25,71 @@ sim_data <- function(n = 25, p = 50, q = 5, R = 5, noise_weight = 1, D_method = 
 
   # Creates A and D matrices
   
+  if(D_method == "complex") {
+    R = 13
+  }
+  
   Row1 <- c(rep(1, 5), rep(0, p - 5))
   Row2 <- c(rep(0, 5), rep(1, 10), rep(0, p - 15))
   
   reps1 <- round(3*R/5)
   reps2 <- R - reps1
   
-  A1 <- do.call("rbind", replicate(3, Row1, simplify = FALSE))
-  A2 <- do.call("rbind", replicate(2, Row2, simplify = FALSE))
+  A1 <- do.call("rbind", replicate(reps1, Row1, simplify = FALSE))
+  A2 <- do.call("rbind", replicate(reps2, Row2, simplify = FALSE))
   
   A <- rbind(A1, A2)
+
   
   if(struc == "complex") {
     R = 13
     
+    Row1 <- c(rep(1, 5), rep(0, p - 5))
+    Row2 <- c(rep(0, 5), rep(1, 10), rep(0, p - 15))
     Row3 <- c(rep(0, 15), rep(1, 5), rep(0, p - 20))
     Row4 <- c(rep(0, 20), 1, rep(0, p - 21))
     Row5 <- c(rep(0, 21), rep(1, 2), rep(0, p - 23))
     
+    A1 <- do.call("rbind", replicate(3, Row1, simplify = FALSE))
+    A2 <- do.call("rbind", replicate(2, Row2, simplify = FALSE))
     A3 <- do.call("rbind", replicate(3, Row3, simplify = FALSE))
     A4 <- do.call("rbind", replicate(2, Row4, simplify = FALSE))
     A5 <- do.call("rbind", replicate(3, Row5, simplify = FALSE))
     
-    A <- rbind(A, A3, A4, A5)
+    A <- rbind(A1, A2, A3, A4, A5)
     
   }
   
    
   if(D_method == "new") {
-     D <- matrix(rep(1, R*q), nrow = R)
+     
+    D <- matrix(rep(1, R*q), nrow = R)
+    
   } else if(D_method == "diag") {
+    
     D <- diag(max(q, R))[1:R, 1:q]
+    
+  } else if(D_method == "simple") {
+    
+    D <- cbind(rep(1, R), matrix(rep(0, R*(q-1)), nrow = R))
+    
+  } else if(D_method == "complex") {
+    
+    
+    D1 <- c(rep(1, 3), rep(0, 10))
+    D2 <- c(rep(0, 3), rep(1, 3), rep(0, 7))
+    D3 <- c(rep(0, 6), rep(1, 3), rep(0, 4))
+    D4 <- c(rep(0, 9), rep(1, 3), rep(0, 1))
+    D5 <- matrix(rep(0, R*(q-4)), nrow = R)
+    
+    D <- cbind(D1, D2, D3, D4, D5)
+    
   } else {
      q_s <- round(q/4)
+     
+     if(q_s == 0) {
+       q_s = 1
+     }
      
      Row1D <- c(rep(1, q_s), rep(0, q - q_s))
      Row2D <- c(rep(0, q_s), rep(1, q_s), rep(0, q - 2*q_s))
@@ -295,13 +327,63 @@ plot(samp_test$noise_weight, samp_test$ncomp)
 ```
 
 
+```{r, eval=FALSE, warning=FALSE}
+noise_samp_spls <- replicate(100, noise_eval(noise_weight = 1, func = "spls"))
+```
 ```{r, eval=FALSE}
-noise_samp <- replicate(50, apply(matrix(c(seq(from = 0.25, to = 5, by = 0.25), 
-                            seq(from = 5.5, to = 10, by = 0.5)),
-                            nrow = 1),
-                   MARGIN = 2,
-                   noise_eval,
-                   func = "spls"))
+noise_samp_pls <- replicate(100, noise_eval(noise_weight = 1, func = "pls"))
+```
+```{r, eval=FALSE}
+noise_samp_ddspls <- replicate(100, noise_eval(noise_weight = 1, func = "ddspls"))
+```
+
+
+```{r, eval=FALSE, warning=FALSE}
+noise_samp_spls <- replicate(100, noise_eval(noise_weight = 0.5, func = "spls"))
+```
+```{r, eval=FALSE}
+noise_samp_pls <- replicate(100, noise_eval(noise_weight = 0.5, func = "pls"))
+```
+```{r, eval=FALSE}
+noise_samp_ddspls <- replicate(100, noise_eval(noise_weight = 0.5, func = "ddspls"))
+```
+
+
+
+```{r, }
+noise_1_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_ddspls.csv")
+noise_1_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_spls.csv")
+noise_1_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_pls.csv")
+noise_0.5_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_ddspls.csv")
+noise_0.5_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_spls.csv")
+noise_0.5_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_pls.csv")
+```
+
+
+```{r}
+ggplot(noise_1_ddspls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 4.5)
+
+ggplot(noise_1_spls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 4.5)
+
+ggplot(noise_1_pls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 4.5)
+
+ggplot(noise_0.5_ddspls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 6.5)
+
+ggplot(noise_0.5_spls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 6.5)
+
+ggplot(noise_0.5_pls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  xlim(0.5, 6.5)
 ```
 
 
@@ -455,4 +537,270 @@ ggplot(data = pls.p.reps, aes(x = ncomp)) +
   scale_x_continuous(breaks = 1:4, limits = c(0.5,4.5))  +
   labs(title = "NIPALS-PLS", caption = "complex structure with n = 250 and p = 500") +
   theme_light()
+```
+
+
+## New Simulation Response Test
+
+```{r q Simulation Function}
+q_eval <- function(q, noise_weight = 0.5, n = 150, p = 100,func = "ddsPLS", struc = "simple", D_method = "simple"){
+   
+  ## Note that if D_method != "simple" there are lower bounds on the value of q
+  
+   # Randomly simulates data
+   sim <- sim_data(n = n, p = p, q = q, noise_weight = noise_weight, noise_type = "rnorm", struc = struc, D_method = D_method)
+   
+   # Passes Data to test function
+   pls_test(n = n, sim = sim, func = func, passed_arg = q)
+}
+```
+
+
+### Range of Q Simulation
+
+```{r, eval=FALSE}
+q_test_ddspls <- apply(matrix(c(2:50), nrow = 1),
+                       MARGIN = 2,
+                       q_eval)
+```
+```{r, eval=FALSE}
+q_test_spls <- apply(matrix(c(2:50),
+                            nrow = 1),
+                   MARGIN = 2,
+                   q_eval,
+                   func = "spls")
+```
+```{r, warning=FALSE, eval=FALSE}
+q_test_pls <- apply(matrix(c(2:50),
+                            nrow = 1),
+                   MARGIN = 2,
+                   q_eval,
+                   func = "pls")
+```
+
+
+```{r}
+q_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/q_test_ddspls.csv")
+q_test_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/q_test_spls.csv")
+q_test_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/q_test_pls.csv")
+```
+
+```{r}
+plot(q_test_ddspls$q, q_test_ddspls$RMSE)
+plot(q_test_spls$q, q_test_spls$RMSE)
+plot(q_test_pls$q, q_test_pls$RMSE)
+```
+
+
+```{r}
+plot(q_test_ddspls$q, q_test_ddspls$ncomp)
+plot(q_test_spls$q, q_test_spls$ncomp)
+plot(q_test_pls$q, q_test_pls$ncomp)
+```
+
+I think there should just be 1 component built here, 
+
+### q = 25 Replication
+```{r, eval=FALSE}
+ddspls.q.reps <- replicate(100, q_eval(q = 25))
+```
+
+```{r, eval=FALSE}
+spls.q.reps <- replicate(100, q_eval(q = 25, func = "spls"))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.q.reps <- replicate(100, q_eval(q = 25, func = "pls"))
+```
+
+```{r}
+ddspls_q_25 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_25.csv")
+spls_q_25 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_q_25.csv")
+pls_q_25 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_q_25.csv")
+```
+
+```{r}
+ggplot(data = ddspls_q_25, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "ddsPLS")
+
+ggplot(data = spls_q_25, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "sPLS")
+
+ggplot(data = pls_q_25, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "NIPALS-PLS")
+```
+
+```{r}
+ggplot(ddspls_q_25, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(spls_q_25, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(pls_q_25, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+```
+
+```{r}
+q_results <- as.data.frame(rbind(c(mean(ddspls_q_25$RMSE), median(ddspls_q_25$RMSE), var(ddspls_q_25$RMSE)),
+      c(mean(spls_q_25$RMSE), median(spls_q_25$RMSE), var(spls_q_25$RMSE)),
+      c(mean(pls_q_25$RMSE), median(pls_q_25$RMSE), var(pls_q_25$RMSE))))
+q_results
+```
+When trying to predict a larger number of responses, many of which are uncorrelated ddsPLS has much more variance in the resulting RMSE. However, it tends to perform better but there is a chance of significantly worse performance.
+
+```{r}
+plot(ddspls_q_25$R2, ddspls_q_25$Q2)
+plot(spls_q_25$R2, spls_q_25$Q2)
+plot(pls_q_25$R2, pls_q_25$Q2)
+
+cor(ddspls_q_25$R2, ddspls_q_25$Q2)
+cor(spls_q_25$R2, spls_q_25$Q2)
+cor(pls_q_25$R2, pls_q_25$Q2)
+```
+Performance issues look like due to problem with ddsPLS fitting the original data. For both PLS and sPLS we observe about what we would expect, $R^2$ outperforms $Q^2$ with a positive relation between the two (very weak in the case of PLS). When ddsPLS performs well it far outperforms the other two methods. However, it also performs extremely poorly at time. This is due to the fact that it doesn't fit the data well. If possible it would be good to do more research into what is happening in these cases where the fit is extremely poor. Maybe trying to avoid overfitting the data too much or removing some of the responses that are correlated with the predictors.
+
+
+Looks like `ddsPLS` function doesn't work when `q=1`, not sure why will try to look thought the source code. Thought I had tested this before, I guess not.
+
+### Q Test Newest D method
+
+```{r, eval=FALSE}
+ddspls.q.reps <- replicate(100, q_eval(q = 25, D_method = "newest"))
+```
+
+```{r, eval=FALSE}
+spls.q.reps <- replicate(100, q_eval(q = 25, func = "spls", D_method = "newest"))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.q.reps <- replicate(100, q_eval(q = 25, func = "pls", D_method = "newest"))
+```
+
+
+```{r}
+ddspls_q_25_Dnewest <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_25_Dnewest.csv")
+spls_q_25_Dnewest <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_q_25_Dnewest.csv")
+pls_q_25_Dnewest <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_q_25_Dnewest.csv")
+```
+
+
+```{r}
+ggplot(data = ddspls_q_25_Dnewest, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "ddsPLS")
+
+ggplot(data = spls_q_25_Dnewest, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "sPLS")
+
+ggplot(data = pls_q_25_Dnewest, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 0:5, limits = c(-0.5,5.5))  +
+  labs(title = "NIPALS-PLS")
+```
+
+```{r}
+ggplot(ddspls_q_25_Dnewest, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(spls_q_25_Dnewest, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(pls_q_25_Dnewest, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+```
+
+```{r}
+q_results_Dnewest <- as.data.frame(rbind(c(mean(ddspls_q_25_Dnewest$RMSE), median(ddspls_q_25_Dnewest$RMSE), var(ddspls_q_25_Dnewest$RMSE)),
+      c(mean(spls_q_25_Dnewest$RMSE), median(spls_q_25_Dnewest$RMSE), var(spls_q_25_Dnewest$RMSE)),
+      c(mean(pls_q_25_Dnewest$RMSE), median(pls_q_25_Dnewest$RMSE), var(pls_q_25_Dnewest$RMSE))))
+q_results_Dnewest
+```
+Looks like `ddsPLS` correctly gets structure again with more complex D matrix but has more variable predictions with higher mean RMSE. Might want to try adding predictors. Interestingly, $R^2$ and $Q^2$ are negatively correlalted for sPLS.
+
+
+```{r}
+plot(ddspls_q_25_Dnewest$R2, ddspls_q_25_Dnewest$Q2)
+plot(spls_q_25_Dnewest$R2, spls_q_25_Dnewest$Q2)
+plot(pls_q_25_Dnewest$R2, pls_q_25_Dnewest$Q2)
+
+cor(ddspls_q_25_Dnewest$R2, ddspls_q_25_Dnewest$Q2)
+cor(spls_q_25_Dnewest$R2, spls_q_25_Dnewest$Q2)
+cor(pls_q_25_Dnewest$R2, pls_q_25_Dnewest$Q2)
+```
+
+
+### New Complex D Structure
+
+```{r, eval=FALSE}
+ddspls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", D_method = "complex"))
+```
+
+```{r, eval=FALSE}
+spls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", func = "spls", D_method = "complex"))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", func = "pls", D_method = "complex"))
+```
+
+
+```{r}
+ddspls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_10.csv")
+spls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_q_10.csv")
+pls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_q_10.csv")
+```
+
+```{r}
+ggplot(data = ddspls_q_10, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "ddsPLS")
+
+ggplot(data = spls_q_10, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "sPLS")
+
+ggplot(data = pls_q_10, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "NIPALS-PLS")
+```
+
+```{r}
+ggplot(ddspls_q_10, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(spls_q_10, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(pls_q_10, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+```
+
+```{r}
+q_results_10 <- as.data.frame(rbind(c(mean(ddspls_q_10$RMSE), median(ddspls_q_10$RMSE), var(ddspls_q_10$RMSE)),
+      c(mean(spls_q_10$RMSE), median(spls_q_10$RMSE), var(spls_q_10$RMSE)),
+      c(mean(pls_q_10$RMSE), median(pls_q_10$RMSE), var(pls_q_10$RMSE))))
+q_results_10
+```
+
+```{r}
+plot(ddspls_q_10$R2, ddspls_q_10$Q2)
+plot(spls_q_10$R2, spls_q_10$Q2)
+plot(pls_q_10$R2, pls_q_10$Q2)
+
+cor(ddspls_q_10$R2, ddspls_q_10$Q2)
+cor(spls_q_10$R2, spls_q_10$Q2)
+cor(pls_q_10$R2, pls_q_10$Q2)
 ```

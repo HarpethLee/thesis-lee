@@ -401,14 +401,14 @@ p_eval <- function(p, noise_weight = 1, n = 150, q = 5,func = "ddsPLS", struc = 
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 samp_test <- apply(matrix(seq(from = 50, to = 1000, by = 50),
                             nrow = 1),
                    MARGIN = 2,
                    p_eval)
 ```
 
-```{r, fig.align='center'}
+```{r, fig.align='center', cache=TRUE}
 samp_test <-as.data.frame(t(samp_test))
 colnames(samp_test) <- c("p", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
 
@@ -418,7 +418,7 @@ plot(samp_test$p, samp_test$RMSE)
 abline(reg, col = "red")
 ```
 
-```{r}
+```{r, eval=FALSE}
 samp_test <- apply(matrix(seq(from = 50, to = 1000, by = 50),
                             nrow = 1),
                    MARGIN = 2,

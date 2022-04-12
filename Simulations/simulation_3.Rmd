@@ -804,3 +804,70 @@ cor(ddspls_q_10$R2, ddspls_q_10$Q2)
 cor(spls_q_10$R2, spls_q_10$Q2)
 cor(pls_q_10$R2, pls_q_10$Q2)
 ```
+sPLS struggles with many uncorrelated predictors. Interestingly, PLS performs better than ddsPLS. Although PLS looks to overfit the data more, I think it is more likely to make the correct number of components. 
+
+### Larger Sample Size
+```{r, eval=FALSE}
+ddspls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", D_method = "complex", n = 300))
+```
+
+```{r, eval=FALSE}
+spls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", func = "spls", D_method = "complex", n = 300))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+pls.q.reps <- replicate(100, q_eval(q = 10, struc = "complex", func = "pls", D_method = "complex", n = 300))
+```
+
+```{r}
+ddspls_q_10_n_300 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_10_n_300.csv")
+spls_q_10_n_300 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_q_10_n_300.csv")
+pls_q_10_n_300 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_q_10_n_300.csv")
+```
+
+```{r}
+ggplot(data = ddspls_q_10_n_300, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "ddsPLS")
+
+ggplot(data = spls_q_10_n_300, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "sPLS")
+
+ggplot(data = pls_q_10_n_300, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:10, limits = c(0.5,10.5))  +
+  labs(title = "NIPALS-PLS")
+```
+
+```{r}
+ggplot(ddspls_q_10_n_300, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(spls_q_10_n_300, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(pls_q_10_n_300, aes(x = RMSE)) +
+  geom_histogram(binwidth = 0.05)
+```
+
+```{r}
+q_results_10_n_300 <- as.data.frame(rbind(c(mean(ddspls_q_10_n_300$RMSE), median(ddspls_q_10_n_300$RMSE), var(ddspls_q_10_n_300$RMSE)),
+      c(mean(spls_q_10_n_300$RMSE), median(spls_q_10_n_300$RMSE), var(spls_q_10_n_300$RMSE)),
+      c(mean(pls_q_10_n_300$RMSE), median(pls_q_10_n_300$RMSE), var(pls_q_10_n_300$RMSE))))
+q_results_10_n_300
+```
+
+```{r}
+plot(ddspls_q_10_n_300$R2, ddspls_q_10_n_300$Q2)
+plot(spls_q_10_n_300$R2, spls_q_10_n_300$Q2)
+plot(pls_q_10_n_300$R2, pls_q_10_n_300$Q2)
+
+cor(ddspls_q_10_n_300$R2, ddspls_q_10_n_300$Q2)
+cor(spls_q_10_n_300$R2, spls_q_10_n_300$Q2)
+cor(pls_q_10_n_300$R2, pls_q_10_n_300$Q2)
+```
+
+Results with a larger sample size aren't significantly different.

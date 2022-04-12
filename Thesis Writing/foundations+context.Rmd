@@ -54,12 +54,6 @@ Another problem that arises from high dimensional data is computational time. Th
 Working with high dimensional data presents a number of issues which make it more difficult to extract meaningful finding from data. By using dimension reduction techniques we can mitigate many of these issues however many feature selection techniques will be less successful as they require us to discard a large amount of the data and may have a hard time finding the most meaningful features. Instead, we may want to turn to extraction methods that project the data into a lower dimensional space while still maintaining as much of the structure as we can.
 
 
-## Principal Component Analysis
-
-  Principal component analysis(PCA) is a commonly used unsupervised learning technique that can be used to reduce the dimension of data. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. These principal components will preserve as much of the structure of the data as possible while projecting it into lower dimensions. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
-    PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$. Note that if all $n$ principal components are used, the principal components will be in the same feature space as the original data. Due to this, we will usually want to select the first few principal components to use.
-
-  
 ## Linear Regression
 
   Linear regression is perhaps the most commonly used regression method given its simplicity and that it often yields fairly well performing models. Many other regression techniques use linear regression as a foundation. Linear regression works to find the line in $n$ space that minimizes the Mean Squared Error (the squared distance between the line and observed data). The MSE is used in order to ensure that there is a unique answer. In linear regression we are looking for terms $\beta_0,...,\beta_n$ such that $\hat{y} = \beta_0 + \beta_1 x_1 + ... + \beta_p x_p$ where $\hat{y}$ is our predicted $y$ value. The following plot shows the line of best fit for a randomly generated set of points.
@@ -76,7 +70,13 @@ plot(rand_data, ann = FALSE)
 abline(a = reg$coefficients[1], b = reg$coefficients[2], col = "red")
 ```
 
-Linear regression is one of the most commonly used 
+Linear regression is one of the most commonly used regression methods due to its simplicity and wide applicability. Many other modeling methods use linear regression as a foundation or central part of building a model. Despite its wide applicability, simple linear regression is not a perfect model. For one it is highly susceptible to the curse of dimensionality as models become more variable. Furthermore, if $n > p$ simple linear regression will not be able to produce a unique model as there will be an infinite number of hyperplanes in the feature space that minimize the sum of squares. In order to solve this problem, the data must be moved into a lower dimensional feature space.
+
+## Principal Component Analysis
+
+  Principal component analysis(PCA) is a commonly used unsupervised learning technique that can be used to reduce the dimension of data. PCA works by finding the principle components of a dataset, these can be thought of as the direction along which the data varies the most in the feature space. These principal components will preserve as much of the structure of the data as possible while projecting it into lower dimensions. For those of you with a background in linear algebra, the principal components will be the eigenvectors of the covariance matrix in order of the norm of the eigenvalues.
+    PCA is one of the most commonly used dimension reduction techniques as it is often able to capture a large amount of the variation in a data set using only a few features. PCA returns a series of principal components, these can be thought of as vectors in the original feature space. Principal components will be orthogonal to each other so the variance explained by each component will be unique. Given an $n \times p$ data set, $n$ principal components can be created where each principal component is a vector of length $p$. Note that if all $n$ principal components are used, the principal components will be in the same feature space as the original data. Due to this, we will usually want to select the first few principal components to use.
+
 
 ## Principal Component Regression
 

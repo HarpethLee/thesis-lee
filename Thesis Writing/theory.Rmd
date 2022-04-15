@@ -36,16 +36,28 @@ We then use the same equation used to find $\textbf{w}_1$ to find the $k$th prin
 
 The following plot shows the first two(and only) principals components for a set of two dimensional data. The red line is the first principal component while the green line is the second. Note that they are perpendicular. The red line describes as much variation in the data using a singular vector in the original space. Although it may look similar, the first principal component is not the same as the regression line which minimizes the residual distance.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, cache=TRUE, warning=FALSE}
 library(MASS)
+library(ggplot2)
 
 rand_data <- mvrnorm(n = 40, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 4), nrow = 2))
 
+rand_data <- as.data.frame(scale(rand_data))
+
 pca_data <- prcomp(rand_data, scale. = TRUE)
 
-plot(scale(rand_data), ann = FALSE)
-abline(a = 0, b = pca_data$rotation[1,1]/pca_data$rotation[2,1], col = "red")
-abline(a = 0, b = pca_data$rotation[1,2]/pca_data$rotation[2,2], col = "green")
+ggplot(rand_data, aes(x = V1, y = V2)) +
+  geom_point() +
+  geom_abline(slope = pca_data$rotation[1,1]/pca_data$rotation[2,1],
+              intercept = 0,
+              color = "red") +
+  geom_abline(slope = pca_data$rotation[1,2]/pca_data$rotation[2,2],
+              intercept = 0,
+              color = "blue") +
+  labs(x = "X",
+       y = "Y",
+       caption = "The red line shows the first principal component of the data while the blue line shows the second principal component") +
+  theme_minimal()
 ```
 
 Often principal components can be used as latent variables. Sometimes they may be meaningful and correspond to a property of the data that isn't directly measured. For example, the first principal component of data containing the nutritional values for food may correspond to how rich in vitamins a food is.
@@ -61,9 +73,11 @@ The $L_1$ penalty can be added to a model by adding a term of $\lambda \sum_{i =
 $$
 \text{argmin} \left\{ \frac{1}{2} \sum_{i = 1}^n(y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij})^2 + \lambda \sum_{j = 1}^p |\beta_j| \right\}
 $$
-Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
 
 ![Comparison of $L_1$(left) and $L_2$(right) norms. As we can see restraints on the $L_2$ norms prevent coefficients from being sent to 0. Image taken from ESLR.](/Users/johnlee/R Files/thesis-lee/Thesis Writing/lasso_img.png)
+
+Note that as $\lambda \to 0$ the model will become unchanged by the penalty and as $\lambda \to \infty$, $\beta_i = 0$ for all $i$. If $\lambda$ is sufficiently large, we will begin to see some $\beta_i = 0$ which makes the $L_1$ norm special among commonly used norms.
+
 
 
 ## Latent Variable Models
@@ -112,6 +126,8 @@ Q^2_b = 1 - \frac{\sum_{j = 1}^q \sum_{i \in OOB(b)}  (\hat{y}_{i,j}^b - y_{i,j}
 $$
 where $\hat{y}_{i,j}^b$ are predictions from the model built using the training group $b$ and $\bar{y}_{i,j}^b$ are the mean estimates for rows of the training group $b$. We will then take the means across a $B$ different splits so that $\bar{R}^2_B = \frac{1}{B} \sum_{b = 1}^B R^2_b$ and $\bar{Q}^2_B = \frac{1}{B} \sum_{b = 1}^B Q^2_b$.
 
+Despite the similarity of the $R^2$ and $Q^2$ metrics, the two metrics will improve under different conditions for the model. Maximizing $R^2$ will favor more complex models that closely fit the training data while maximizing $Q^2$ will favor less complex models that address the underlying structure of the data. Initially, increasing model complexity will improve both metrics. However, past a certain threshold, increasing model complexity will cause $Q^2$ to decrease while $R^2$ to continues to increase. Due to this, minimizing $R^2 - Q^2$ is recommended for selecting values of $\lambda_k$ for the ddsPLS model.
+
 Ideally we want a high $R^2$ and $Q^2$ meaning the model performs well with both the test and training data. In practice $R^2$ is almost always an inflated metric of performance and $Q^2$ will be more accurate for accessing model performance. For this reason minimizing $R^2 - Q^2$ may be used for parameter selection as low values indicate models that perform well on both IB and OOB observations. Although it may seem likely to pick parameters where both $R^2$ and $Q^2$ perform poorly, $R^2$ tends to increase more quickly and fall of more slowly than $Q^2$ leaving a difference at these extremes.
 
 
@@ -152,7 +168,7 @@ We will assume that $\textbf{M} = \frac{1}{n} \sum_{i = 1}^n (\textbf{y}_i - \ba
 
 The NIPALS-PLS algorithm is as follows:
 
-For all $k \in [1:K]$,
+For $k \in [1:K]$,
 
 a) $\textbf{u}_k = \overrightarrow{\text{RSV}}(\textbf{M}_k)$
 
@@ -178,7 +194,7 @@ First we must define the soft-thresholding function $S_{\lambda}(\textbf{M}) = \
 
 The sPLS algorithm is as follows:
 
-For all $k \in [1:K]$,
+For $k \in [1:K]$,
 
 $\text{a}^{\dagger}$) Start with initial $\textbf{v}_k$ and iterate until the two steps converge.
 
@@ -203,6 +219,8 @@ The algorithm minimizes $||(n-1)\textbf{M}_k - \textbf{v}\textbf{u}^\text{T}||^2
 
 Data-driven sparse partial least squares(ddsPLS) is a new PLS method recently proposed by Lorenzo. Unlike previous sparse partial least squares algorithms, ddsPLS directly imposes sparisty on the empirical covariance matrix instead of its eigenvector decomposition.
 
+For $k \in [1:K]$,
+
 a) $\normalsize \textbf{u}_k = \overrightarrow{RSV}(S_{\lambda_k}(M_{k}))$, $\normalsize \textbf{v}_r = \overrightarrow{RSV}(S_{\lambda^{(r)}}({M^{(r)}}^T))$
 
 b) $\normalsize \textbf{t}_k = \textbf{X}_{k} \textbf{u}_k$
@@ -218,4 +236,12 @@ e) $\normalsize \textbf{X}_{k+1} = \textbf{X}_{k} - \textbf{t}_k \textbf{p}_k^T$
 Note that if $\lambda = 0$ the outcome is identical to the NIPALS-PLS algorithm.
 
 ddsPLS maximizes $\textbf{v}^\text{T} S_{\lambda_k}(\textbf{M}_k^\text{T}) \textbf{u}$ for $\textbf{u}$ and $\textbf{v}$ with the constraint $\textbf{v}^\text{T} \textbf{v} = \textbf{u} \textbf{u}^\text{T} = 1$. The ddsPLS algorithm has $K + 1$ parameters as there is only one parameter that needs to be maximized for each component. This gives it a better computation time when compared to other sparse PLS algorithms as cross validation or bootstrapping only needs to be performed for one parameter per component.
+
+Along with the ddsPLS algorithm, Lorenzo also proposes a standard method for selecting the number of components to include in the model. If the following 3 conditions are met, the $k$th component is built. If the conditions are not built, the model will include only $k-1$ components. The conditions are as follows,
+
+1. The $k$th component performs better than mean estimation, $\bar{Q}^2_{B,k} > 0$.
+
+2. The model containing $K$ components performs than the model containing $K-1$ components, $\bar{Q}^2_{B, K} > \bar{Q}^2_{B, K-1}$.
+
+3. The bootstrapped explained variance is close to the boot-strapped cross-validated explained variance, $\bar{R}^2_B - \bar{Q}^2_B$ is minimum on the set of hyperparameters.
 

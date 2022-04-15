@@ -98,7 +98,7 @@ When examining model performance, it is important to consider how it performs un
 ```{r, fig.align='center', echo=FALSE, out.width="40%"}
 samp_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_noise_weight_1.csv")
 
-ggplot(samp_test_ddspls, aes(x = noise_weight, y = RMSE)) +
+ddspls_plot <- ggplot(samp_test_ddspls, aes(x = noise_weight, y = RMSE)) +
   geom_point() +
   geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
    stat_poly_eq(formula = y~x, 
@@ -114,7 +114,7 @@ ggplot(samp_test_ddspls, aes(x = noise_weight, y = RMSE)) +
 samp_test_spls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_noise_weight_1.csv")[,-1]
 colnames(samp_test_spls) <- c("noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
 
-ggplot(samp_test_spls, aes(x = noise_weight, y = RMSE)) +
+spls_plot <- ggplot(samp_test_spls, aes(x = noise_weight, y = RMSE)) +
   geom_point() +
   geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
    stat_poly_eq(formula = y~x, 
@@ -128,7 +128,7 @@ ggplot(samp_test_spls, aes(x = noise_weight, y = RMSE)) +
 ```{r, echo=FALSE, out.width="40%"}
 samp_test_pls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_noise_weight_1.csv")
 
-ggplot(samp_test_pls, aes(x = noise_weight, y = RMSE)) +
+pls_plot <- ggplot(samp_test_pls, aes(x = noise_weight, y = RMSE)) +
   geom_point() +
   geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
    stat_poly_eq(formula = y~x, 
@@ -139,12 +139,56 @@ ggplot(samp_test_pls, aes(x = noise_weight, y = RMSE)) +
        caption = unname(TeX("Relation between $\\omega$ and the test set RMSE for the PLS model. $$n=100, p=100, q=5$$"))) +
   theme_minimal()
 ```
-Note the similar slopes of the line of best fit for all model types.
 
+```{r, fig.dim="33%", echo=FALSE}
+ddspls_plot
+spls_plot
+pls_plot
+```
+
+Note the similar slopes of the line of best fit for all model types. Ultimately, these plots suggest that there is not a large difference in performance between model types as the amount of noise is increased. We should be careful about drawing any conclusions from results at higher values of $\omega$ as these models are usually just performing mean estimation and are not as dependent on the model used.
+
+
+Now lets compare $R^2$ and $Q^2$ as $\omega$ changes.
+```{r}
+R2_plot <- ggplot(samp_test_ddspls,
+       aes(x = noise_weight, y = R2)) +
+  geom_point(color = "turquoise3",
+             alpha = 0.5) +
+  geom_point(data = samp_test_spls,
+             aes(x = noise_weight, y = R2),
+             color = "tomato2",
+             alpha = 0.5) +
+  geom_point(data = samp_test_pls,
+              mapping = aes(x = noise_weight, y = R2),
+             color = "darkolivegreen3",
+             alpha = 0.5) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)"))) +
+  theme_minimal()
+
+Q2_plot <- ggplot(samp_test_ddspls,
+       aes(x = noise_weight, y = Q2)) +
+  geom_point(color = "turquoise3",
+             alpha = 0.5) +
+  geom_point(data = samp_test_spls,
+             aes(x = noise_weight, y = Q2),
+             color = "tomato2",
+             alpha = 0.5) +
+  geom_point(data = samp_test_pls,
+              mapping = aes(x = noise_weight, y = Q2),
+             color = "darkolivegreen3",
+             alpha = 0.5) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)"))) +
+  theme_minimal()
+
+grid.arrange(R2_plot, Q2_plot, nrow = 1)
+```
+
+Here we can see the issues that arise with the method sPLS uses to choose the number of components to build. When ddsPLS and PLS start performing mean estimation, sPLS continues to build a model. This leads to a higher $R^2$ but a lower $Q^2$ meaning models perform worse on test data than mean estimation.
 
 ```{r, echo=FALSE, out.width="40%"}
 ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
-  geom_point(size = 5) +
+  geom_point(size = 5, color = "turquoise3") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
        y = "Number of Components",
        title = "ddsPLS") +
@@ -153,7 +197,7 @@ ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
 ```
 ```{r, echo=FALSE, out.width="40%"}
 ggplot(samp_test_spls, aes(x = noise_weight, y = ncomp)) +
-  geom_point(size = 5) +
+  geom_point(size = 5, color = "tomato2") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
        y = "Number of Components",
        title = "sPLS") +
@@ -162,7 +206,7 @@ ggplot(samp_test_spls, aes(x = noise_weight, y = ncomp)) +
 ```
 ```{r, echo=FALSE, out.width="40%"}
 ggplot(samp_test_pls, aes(x = noise_weight, y = ncomp)) +
-  geom_point(size = 5) +
+  geom_point(size = 5, color = "darkolivegreen3") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
        y = "Number of Components",
        title = "PLS") +
@@ -170,14 +214,139 @@ ggplot(samp_test_pls, aes(x = noise_weight, y = ncomp)) +
   theme_minimal()
 ```
 ```{r}
-grid.arrange(plot1, plot2, ncol=2)
+ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
+  geom_point(size = 5, alpha = 0.7, color = "turquoise3") +
+  geom_point(data = samp_test_spls,
+             aes(x = noise_weight, y = ncomp),
+             size = 5,
+             alpha = 0.7,
+             color = "tomato2") +
+  geom_point(data = samp_test_pls,
+             aes(x = noise_weight, y = ncomp),
+             size = 5,
+             alpha = 0.7,
+             color = "darkolivegreen3") +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)")),
+       y = "Number of Components") +
+  ylim(c(0,6)) +
+  theme_minimal()
 ```
 
 
 Here is the number of components built as the noise increases across model types. It is important to note that the sPLS tuning algorithm used always selects at least one component. When 0 components are included in the model this means that mean estimation performs better than the model built. Not building any components at high noise levels is not necessarily a bad sign as PLS methods are not designed to deal with problems due to high noise to signal ratios, it simply means that the noise included has drowned out the signal.
 
+Here we can see that PLS tends to build more components than other models as we would expect since it makes no attempt to build sparser models.
+
+Lets now compare model performance at fixed values of $\omega$ when $\textbf{A}$ is generated using the complex method and $\textbf{D}$ is generated using the 2-block method. For these trials we will fix $n = 100$, $p = 100$, and $q = 5$.
+
+```{r, echo=FALSE}
+noise_1_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_ddspls.csv")
+noise_1_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_spls.csv")
+noise_1_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_pls.csv")
+noise_0.5_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_ddspls.csv")
+noise_0.5_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_spls.csv")
+noise_0.5_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_pls.csv")
+```
+
+First let $\omega = 0.5$. At this noise level we can expect fairly robust and preictive models to be built.
+
+```{r, echo=FALSE, out.height="40%", out.width="100%"}
+ddspls_plot <- ggplot(noise_0.5_ddspls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "turquoise3") +
+  xlim(0.5, 6.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "ddsPLS") +
+  ylim(c(0, 100)) +
+  theme_minimal()
+
+spls_plot <- ggplot(noise_0.5_spls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "tomato2") +
+  xlim(0.5, 6.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "sPLS") +
+  ylim(c(0, 100)) +
+  theme_minimal()
+
+pls_plot <- ggplot(noise_0.5_pls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "darkolivegreen3") +
+  xlim(0.5, 6.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "PLS") +
+  ylim(c(0, 100)) +
+  theme_minimal()
+
+grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
+```
+
+Due to the shape of the data, models should include 2 components. ddsPLS and sPLS both tend to build the correct number of components with sPLS building 2 components every time. PLS always builds too many components and never builds the correct number.
 
 
+```{r, echo=FALSE}
+ddspls_plot <- ggplot(noise_0.5_ddspls, aes(x = RMSE)) +
+  geom_boxplot(color = "turquoise3") +
+  coord_flip() +
+  labs(title = "ddsPLS") +
+  xlim(c(1.6, 3)) +
+  theme_minimal()
+
+spls_plot <- ggplot(noise_0.5_spls, aes(x = RMSE)) +
+  geom_boxplot(color = "tomato2") +
+  coord_flip() +
+  labs(title = "sPLS") +
+  xlim(c(1.6, 3)) +
+  theme_minimal()
+
+pls_plot <- ggplot(noise_0.5_pls, aes(x = RMSE)) +
+  geom_boxplot(color = "darkolivegreen3") +
+  coord_flip() +
+  labs(title = "PLS") +
+  xlim(c(1.6, 3)) +
+  theme_minimal()
+
+grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
+```
+
+At $\omega = 0.5$, we can see that ddsPLS and sPLS perform similarly in regards to to RMSE while PLS performs significantly better.
+
+
+
+Now let $\omega = 1$. 
+
+```{r, echo=FALSE, out.height="40%", out.width="100%"}
+ddspls_plot <- ggplot(noise_1_ddspls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "turquoise3") +
+  xlim(0.5, 4.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "ddsPLS") +
+  ylim(c(0, 90)) +
+  theme_minimal()
+
+spls_plot <- ggplot(noise_1_spls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "tomato2") +
+  xlim(0.5, 4.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "sPLS") +
+  ylim(c(0, 90)) +
+  theme_minimal()
+
+pls_plot <- ggplot(noise_1_pls, aes(x = ncomp)) +
+  geom_histogram(binwidth = 1, fill = "darkolivegreen3") +
+  xlim(0.5, 4.5) +
+  labs(x = "Number of Components",
+       y = "Count",
+       title = "PLS") +
+  ylim(c(0, 90)) +
+  theme_minimal()
+
+grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
+```
+
+ddsPLS and sPLS still tend to build the correct number of components when $\omega$ is increased. Both show an increased tendency to build too few components. PLS now builds fewer components but still tends to build too many components.
 
 ## Predictors
 

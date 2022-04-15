@@ -58,16 +58,30 @@ Working with high dimensional data presents a number of issues which make it mor
 
   Linear regression is perhaps the most commonly used regression method given its simplicity and that it often yields fairly well performing models. Many other regression techniques use linear regression as a foundation. Linear regression works to find the line in $n$ space that minimizes the Mean Squared Error (the squared distance between the line and observed data). The MSE is used in order to ensure that there is a unique answer. In linear regression we are looking for terms $\beta_0,...,\beta_n$ such that $\hat{y} = \beta_0 + \beta_1 x_1 + ... + \beta_p x_p$ where $\hat{y}$ is our predicted $y$ value. The following plot shows the line of best fit for a randomly generated set of points.
 
-```{r, echo=FALSE}
-library(MASS)
+```{r, echo=FALSE, warning=FALSE, cache=TRUE}
+suppressMessages(library(MASS))
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggpmisc))
 
-rand_data <- mvrnorm(n = 40, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 4), nrow = 2))
+rand_data <- mvrnorm(n = 40, mu = c(4,1),
+                     Sigma = matrix(c(8, 5, 5, 4),
+                                    nrow = 2))
 
-reg <- lm(rand_data[,2] ~ rand_data[,1])
+rand_data <- as.data.frame(rand_data)
 
-
-plot(rand_data, ann = FALSE)
-abline(a = reg$coefficients[1], b = reg$coefficients[2], col = "red")
+ggplot(data = rand_data, aes(x = V1, y = V2)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              color = "red") +
+  labs(x = "X",
+       y = "Y",
+       caption = "Demonstration of linear regression on randomly generated data.") +
+   stat_poly_eq(formula = y~x, 
+                aes(label = paste(..eq.label..)), 
+                parse = TRUE) +
+  theme_minimal()
 ```
 
 Linear regression is one of the most commonly used regression methods due to its simplicity and wide applicability. Many other modeling methods use linear regression as a foundation or central part of building a model. Despite its wide applicability, simple linear regression is not a perfect model. For one it is highly susceptible to the curse of dimensionality as models become more variable. Furthermore, if $n > p$ simple linear regression will not be able to produce a unique model as there will be an infinite number of hyperplanes in the feature space that minimize the sum of squares. In order to solve this problem, the data must be moved into a lower dimensional feature space.
@@ -154,4 +168,3 @@ The use of bootstrapping for parameter selection in the ddsPLS model differs fro
 
 ddsPLS and other PLS models often use the $Q^2$ metric to assess model performance. $Q^2$ is closely related to the more common $R^2$ metric as both are calculated using the formula $1 - \frac{\text{RSS}}{\text{TSS}}$ where RSS is the residual sum of squares and TSS is the total sum of squares. $R^2$ is calculated using the data the model is built using while $Q^2$ is calculated using data that the model isn't built on. Typically this is done as part of cross validation with $Q^2$ calculated using the excluded data. The $Q^2$ metric was introduced by Stone and Gessier while Tennehaus first suggested it uses to assess PLS models.
 
-Despite the similarity of the $R^2$ and $Q^2$ metrics, the two metrics will improve under different conditions for the model. Maximizing $R^2$ will favor more complex models that closely fit the training data while maximizing $Q^2$ will favor less complex models that address the underlying structure of the data. Initially, increasing model complexity will improve both metrics. However, past a certain threshold, increasing model complexity will cause $Q^2$ to decrease while $R^2$ to continues to increase. Due to this, minimizing $R^2 - Q^2$ is recommended for selecting values of $\lambda_k$ for the ddsPLS model.

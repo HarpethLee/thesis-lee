@@ -9,11 +9,13 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(latex2exp)
 library(ggpmisc)
 library(gridExtra)
+library(dplyr)
+library(gt)
 ```
 
 
@@ -95,12 +97,36 @@ The $\boldsymbol{\epsilon}_X$ and $\boldsymbol{\epsilon}_Y$ matrices are generat
 
 When examining model performance, it is important to consider how it performs under conditions where the amount of noise varies. The following graphs show the relationship between $\omega$ and the RMSE for the ddsPLS, sPLS, and PLS methods. Note the extremely linear relation displayed in all three.
 
-```{r, fig.align='center', echo=FALSE, out.width="40%"}
+```{r}
 samp_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_noise_weight_1.csv")
+samp_test_spls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_noise_weight_1.csv")
+colnames(samp_test_spls) <- c("X", "noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2.Q2")
+samp_test_pls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_noise_weight_1.csv")
 
-ddspls_plot <- ggplot(samp_test_ddspls, aes(x = noise_weight, y = RMSE)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
+samp_test_ddspls  <- samp_test_ddspls %>%
+  mutate(model = "ddsPLS")
+samp_test_spls <- samp_test_spls %>%
+  mutate(model = "sPLS")
+samp_test_pls <- samp_test_pls %>%
+  mutate(model = "PLS")
+
+samp_test <- rbind(samp_test_ddspls, samp_test_spls, samp_test_pls)
+
+samp_test$model <- factor(samp_test$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+```
+
+
+```{r, fig.align='center', echo=FALSE, out.width="40%"}
+ddspls_plot <- ggplot(samp_test_ddspls,
+                      aes(x = noise_weight, y = RMSE)) +
+  geom_point(color = "turquoise3") +
+  geom_smooth(method = "lm",
+              size = 0.25,
+              se= FALSE,
+              formula = y ~ x,
+              color = "black") +
    stat_poly_eq(formula = y~x, 
                 aes(label = paste(..eq.label..)), 
                 parse = TRUE) +
@@ -111,12 +137,14 @@ ddspls_plot <- ggplot(samp_test_ddspls, aes(x = noise_weight, y = RMSE)) +
 ```
 
 ```{r, echo=FALSE, out.width="40%"}
-samp_test_spls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_noise_weight_1.csv")[,-1]
-colnames(samp_test_spls) <- c("noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2-Q2")
-
-spls_plot <- ggplot(samp_test_spls, aes(x = noise_weight, y = RMSE)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
+spls_plot <- ggplot(samp_test_spls,
+                    aes(x = noise_weight, y = RMSE)) +
+  geom_point(color = "tomato2") +
+  geom_smooth(method = "lm",
+              size = 0.25,
+              se= FALSE,
+              formula = y ~ x,
+              color = "black") +
    stat_poly_eq(formula = y~x, 
                 aes(label = paste(..eq.label..)), 
                 parse = TRUE) +
@@ -126,11 +154,14 @@ spls_plot <- ggplot(samp_test_spls, aes(x = noise_weight, y = RMSE)) +
   theme_minimal()
 ```
 ```{r, echo=FALSE, out.width="40%"}
-samp_test_pls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_noise_weight_1.csv")
-
-pls_plot <- ggplot(samp_test_pls, aes(x = noise_weight, y = RMSE)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red", size = 0.5, se= FALSE, formula = y ~ x) +
+pls_plot <- ggplot(samp_test_pls,
+                   aes(x = noise_weight, y = RMSE)) +
+  geom_point(color = "darkolivegreen3") +
+  geom_smooth(method = "lm",
+              size = 0.25,
+              se= FALSE,
+              formula = y ~ x,
+              color = "black") +
    stat_poly_eq(formula = y~x, 
                 aes(label = paste(..eq.label..)), 
                 parse = TRUE) +
@@ -150,43 +181,67 @@ Note the similar slopes of the line of best fit for all model types. Ultimately,
 
 
 Now lets compare $R^2$ and $Q^2$ as $\omega$ changes.
-```{r}
+```{r, echo=FALSE, fig.align='center'}
 R2_plot <- ggplot(samp_test_ddspls,
        aes(x = noise_weight, y = R2)) +
   geom_point(color = "turquoise3",
-             alpha = 0.5) +
+             alpha = 0.6) +
   geom_point(data = samp_test_spls,
              aes(x = noise_weight, y = R2),
              color = "tomato2",
-             alpha = 0.5) +
+             alpha = 0.6) +
   geom_point(data = samp_test_pls,
               mapping = aes(x = noise_weight, y = R2),
              color = "darkolivegreen3",
-             alpha = 0.5) +
+             alpha = 0.6) +
   labs(x = unname(TeX("Noise Weight ($\\omega$)"))) +
   theme_minimal()
 
 Q2_plot <- ggplot(samp_test_ddspls,
        aes(x = noise_weight, y = Q2)) +
   geom_point(color = "turquoise3",
-             alpha = 0.5) +
+             alpha = 0.6) +
   geom_point(data = samp_test_spls,
              aes(x = noise_weight, y = Q2),
              color = "tomato2",
-             alpha = 0.5) +
+             alpha = 0.6) +
   geom_point(data = samp_test_pls,
               mapping = aes(x = noise_weight, y = Q2),
              color = "darkolivegreen3",
-             alpha = 0.5) +
+             alpha = 0.6) +
   labs(x = unname(TeX("Noise Weight ($\\omega$)"))) +
   theme_minimal()
 
 grid.arrange(R2_plot, Q2_plot, nrow = 1)
 ```
 
+```{r}
+R2_plot <- ggplot(samp_test, aes(x = noise_weight, y = R2, color = model)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)")),
+       y = unname(TeX("$R^2$"))) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+Q2_plot <- ggplot(samp_test, aes(x = noise_weight, y = Q2, color = model)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)")),
+       y = unname(TeX("$Q^2$"))) +
+  theme_minimal()
+
+grid.arrange(R2_plot, Q2_plot, nrow = 1, widths = c(1.25, 1.8))
+```
+
+
 Here we can see the issues that arise with the method sPLS uses to choose the number of components to build. When ddsPLS and PLS start performing mean estimation, sPLS continues to build a model. This leads to a higher $R^2$ but a lower $Q^2$ meaning models perform worse on test data than mean estimation.
 
-```{r, echo=FALSE, out.width="40%"}
+```{r, echo=FALSE, out.width="40%", fig.align='center'}
 ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
   geom_point(size = 5, color = "turquoise3") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
@@ -195,7 +250,7 @@ ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
   ylim(c(0,6)) +
   theme_minimal()
 ```
-```{r, echo=FALSE, out.width="40%"}
+```{r, echo=FALSE, out.width="40%", fig.align='center'}
 ggplot(samp_test_spls, aes(x = noise_weight, y = ncomp)) +
   geom_point(size = 5, color = "tomato2") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
@@ -204,7 +259,7 @@ ggplot(samp_test_spls, aes(x = noise_weight, y = ncomp)) +
   ylim(c(0,6)) +
   theme_minimal()
 ```
-```{r, echo=FALSE, out.width="40%"}
+```{r, echo=FALSE, out.width="40%", fig.align='center'}
 ggplot(samp_test_pls, aes(x = noise_weight, y = ncomp)) +
   geom_point(size = 5, color = "darkolivegreen3") +
   labs(x = unname(TeX("Noise Weight ($\\omega$)")),
@@ -213,7 +268,7 @@ ggplot(samp_test_pls, aes(x = noise_weight, y = ncomp)) +
   ylim(c(0,6)) +
   theme_minimal()
 ```
-```{r}
+```{r, echo=FALSE, fig.align='center'}
 ggplot(samp_test_ddspls, aes(x = noise_weight, y = ncomp)) +
   geom_point(size = 5, alpha = 0.7, color = "turquoise3") +
   geom_point(data = samp_test_spls,
@@ -246,68 +301,66 @@ noise_1_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noi
 noise_0.5_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_ddspls.csv")
 noise_0.5_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_spls.csv")
 noise_0.5_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_pls.csv")
+
+noise_1_ddspls <- noise_1_ddspls %>%
+  mutate(model = "ddsPLS")
+noise_1_spls <- noise_1_spls %>%
+  mutate(model = "sPLS")
+noise_1_pls <- noise_1_pls %>%
+  mutate(model = "PLS")
+noise_0.5_ddspls <- noise_0.5_ddspls %>%
+  mutate(model = "ddsPLS")
+noise_0.5_spls <- noise_0.5_spls %>%
+  mutate(model = "sPLS")
+noise_0.5_pls <- noise_0.5_pls %>%
+  mutate(model = "PLS")
+
+noise_1 <- rbind(noise_1_ddspls, noise_1_spls, noise_1_pls)
+noise_0.5 <- rbind(noise_0.5_ddspls, noise_0.5_spls, noise_0.5_pls)
+
+noise_1$model <- factor(noise_1$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+
+noise_0.5$model <- factor(noise_0.5$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
 ```
 
 First let $\omega = 0.5$. At this noise level we can expect fairly robust and preictive models to be built.
 
-```{r, echo=FALSE, out.height="40%", out.width="100%"}
-ddspls_plot <- ggplot(noise_0.5_ddspls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "turquoise3") +
-  xlim(0.5, 6.5) +
+
+```{r, echo=FALSE}
+noise_0.5 %>%
+  group_by(model) %>%
+  ggplot(aes(x = ncomp, fill = model)) +
+  geom_histogram(binwidth = 1) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
   labs(x = "Number of Components",
        y = "Count",
-       title = "ddsPLS") +
-  ylim(c(0, 100)) +
-  theme_minimal()
-
-spls_plot <- ggplot(noise_0.5_spls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "tomato2") +
-  xlim(0.5, 6.5) +
-  labs(x = "Number of Components",
-       y = "Count",
-       title = "sPLS") +
-  ylim(c(0, 100)) +
-  theme_minimal()
-
-pls_plot <- ggplot(noise_0.5_pls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "darkolivegreen3") +
-  xlim(0.5, 6.5) +
-  labs(x = "Number of Components",
-       y = "Count",
-       title = "PLS") +
-  ylim(c(0, 100)) +
-  theme_minimal()
-
-grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
+       fill = "Model")+
+  theme_minimal() +
+  facet_wrap(vars(model))
 ```
 
 Due to the shape of the data, models should include 2 components. ddsPLS and sPLS both tend to build the correct number of components with sPLS building 2 components every time. PLS always builds too many components and never builds the correct number.
 
 
 ```{r, echo=FALSE}
-ddspls_plot <- ggplot(noise_0.5_ddspls, aes(x = RMSE)) +
-  geom_boxplot(color = "turquoise3") +
-  coord_flip() +
-  labs(title = "ddsPLS") +
-  xlim(c(1.6, 3)) +
+noise_0.5 %>%
+  group_by(model) %>%
+  ggplot(aes(x = model, y = RMSE, color = model)) +
+  geom_boxplot() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = "Model",
+       color = "Model") +
   theme_minimal()
-
-spls_plot <- ggplot(noise_0.5_spls, aes(x = RMSE)) +
-  geom_boxplot(color = "tomato2") +
-  coord_flip() +
-  labs(title = "sPLS") +
-  xlim(c(1.6, 3)) +
-  theme_minimal()
-
-pls_plot <- ggplot(noise_0.5_pls, aes(x = RMSE)) +
-  geom_boxplot(color = "darkolivegreen3") +
-  coord_flip() +
-  labs(title = "PLS") +
-  xlim(c(1.6, 3)) +
-  theme_minimal()
-
-grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
 ```
+
 
 At $\omega = 0.5$, we can see that ddsPLS and sPLS perform similarly in regards to to RMSE while PLS performs significantly better.
 
@@ -315,40 +368,234 @@ At $\omega = 0.5$, we can see that ddsPLS and sPLS perform similarly in regards 
 
 Now let $\omega = 1$. 
 
-```{r, echo=FALSE, out.height="40%", out.width="100%"}
-ddspls_plot <- ggplot(noise_1_ddspls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "turquoise3") +
-  xlim(0.5, 4.5) +
+
+```{r, echo=FALSE}
+noise_1 %>%
+  group_by(model) %>%
+  ggplot(aes(x = ncomp, fill = model)) +
+  geom_histogram(binwidth = 1) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
   labs(x = "Number of Components",
        y = "Count",
-       title = "ddsPLS") +
-  ylim(c(0, 90)) +
-  theme_minimal()
-
-spls_plot <- ggplot(noise_1_spls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "tomato2") +
-  xlim(0.5, 4.5) +
-  labs(x = "Number of Components",
-       y = "Count",
-       title = "sPLS") +
-  ylim(c(0, 90)) +
-  theme_minimal()
-
-pls_plot <- ggplot(noise_1_pls, aes(x = ncomp)) +
-  geom_histogram(binwidth = 1, fill = "darkolivegreen3") +
-  xlim(0.5, 4.5) +
-  labs(x = "Number of Components",
-       y = "Count",
-       title = "PLS") +
-  ylim(c(0, 90)) +
-  theme_minimal()
-
-grid.arrange(ddspls_plot, spls_plot, pls_plot, nrow = 1)
+       fill = "Model")+
+  theme_minimal() +
+  facet_wrap(vars(model))
 ```
 
-ddsPLS and sPLS still tend to build the correct number of components when $\omega$ is increased. Both show an increased tendency to build too few components. PLS now builds fewer components but still tends to build too many components.
+
+
+ddsPLS and sPLS still tend to build the correct number of components when $\omega$ is increased. Both show an increased tendency to build too few components. PLS now builds fewer components but still tends to build too many.
+
+
+```{r, echo=FALSE}
+noise_1 %>%
+  group_by(model) %>%
+  ggplot(aes(x = model, y = RMSE, color = model)) +
+  geom_boxplot() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = "Model",
+       color = "Model") +
+  theme_minimal()
+```
+
+Again PLS tends to have the lowest RMSE however it's performance is now more similar to the other models than with less noise. ddsPLS and sPLS still perform very similarly however we can see that ddsPLS now performs slightly better.
+
+```{r, echo=FALSE}
+noise_1 %>%
+  group_by(model) %>%
+  ggplot(aes(x = R2, y = Q2, color = model)) +
+  geom_point(alpha = 0.75) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(color = "Model",
+       x = unname(TeX("$R^2$")),
+       y = unname(TeX("$Q^2$"))) +
+  theme_minimal()
+```
+Here we will also introduce a problem that sparse models will suffer from. Looking at the results from PLS models, we see what we would hope to observe, models consistently have fairly high $R^2$ values while also having lower but still well performing $Q^2$ values. For the most part, ddsPLS and sPLS exhibit the same behavior however, we can notice an issue with the cluster of points in the lower left corner. These points exhibit cases where the original model failed to provide a good fit of the training data as evidenced by the noticeably lower $R^2$ value. While we expect sparse models to have a lower $R^2$ than PLS, the problems is that these models do not offer consistent performance on similar data.
+
+Due to the nature of these models, I would guess that this is due to the models overly penalizing model complexity. Due to the frequency of these models that underfit the data ($12%$ of ddsPLS models and $16%$ of sPLS models) it is extremely unlikely that these results are due to random variation in the data that the different models fit. Since this problem is prevalent in both ddsPLS and sPLS, at least part of it is likely due to the models either heavily penalizing or selecting to remove relevant predictors.
+
+
 
 ## Predictors
 
+```{r, echo = FALSE}
+p_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_ddspls.csv")
+p_test_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_spls.csv")
+p_test_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_pls.csv")
+p_test_ddspls_Q2 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_ddspls_Q2.csv")
+
+p_test_ddspls <- p_test_ddspls %>%
+  mutate(model = "ddsPLS")
+p_test_spls <- p_test_spls %>%
+  mutate(model = "sPLS")
+p_test_pls <- p_test_pls %>%
+  mutate(model = "PLS")
+p_test_ddspls_Q2 <- p_test_ddspls_Q2 %>%
+  mutate(model = "ddsPLS(Q2)")
+
+p_test <- rbind(p_test_ddspls, p_test_spls, p_test_pls, p_test_ddspls_Q2)
+
+p_test$model <- factor(p_test$model,
+    levels = c("ddsPLS", "sPLS", "PLS", "ddsPLS(Q2)"),
+    ordered = TRUE)
+```
+
+The following are for data generated with $n = 50$, $q = 5$, $\omega = 1$, $\textbf{A}$ generated with a complex structure, and $\textbf{D}$ generated with the 2-block method.
+
+```{r, echo=FALSE, warning=FALSE}
+p_test %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = p, y = ncomp, color = model)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  scale_y_continuous(breaks = c(0:10)) +
+  labs(y = "Number of Components",
+       x = "Number of Predictors",
+       color = "Model") +
+  theme_minimal()
+```
+
+Here we can see the differing tendencies in the number of components that the models build. Ideally, models will build two components* in this situation. ddsPLS performs by far the best in this regard as PLS tends to overfit the data while sPLS underfits it.
 
 
+```{r, echo=FALSE}
+p_test %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = p, y = rmse, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = "RMSE") +
+  theme_minimal()
+```
+
+As $p$ increases all PLS models show some degree of decline in performance as we would expect. Both of the sparse models exhibit a noticeable but fairly moderate increase in the RMSE. Meanwhile PLS exhibits a more drastic increase in its RMSE. 
+
+```{r, echo=FALSE}
+p_test %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = p, y = R2.Q2, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = unname(TeX("$R^2-Q^2$"))) +
+  theme_minimal()
+```
+
+The increase in RMSE for the PLS model is due to it overfitting the data. As $p$ increases, so does the difference in $R^2$ and $Q^2$. This is due to PLS fitting random correlation that appears in the noise that the sparse models are able to mostly ignore. Since ddsPLS is the only model to use $R^2 - Q^2$ as the metric for parameter selection it is unsurprising that it is the only one of the three models for which the metric decreases.
+
+
+```{r, echo=FALSE}
+ddspls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_p_1000.csv")
+spls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_p_1000.csv")
+pls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_p_1000.csv")
+ddspls_1000_reps_Q2 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_p_1000_Q2.csv")
+
+ddspls_1000_reps <- ddspls_1000_reps %>%
+  mutate(model = "ddsPLS")
+spls_1000_reps <- spls_1000_reps %>%
+  mutate(model = "sPLS")
+pls_1000_reps <- pls_1000_reps %>%
+  mutate(model = "PLS")
+ddspls_1000_reps_Q2 <- ddspls_1000_reps_Q2 %>%
+  mutate(model = "ddsPLS(Q2)")
+
+reps_p <- rbind(ddspls_1000_reps, spls_1000_reps, pls_1000_reps, ddspls_1000_reps_Q2)
+
+reps_p$model <- factor(reps_p$model,
+    levels = c("ddsPLS", "sPLS", "PLS", "ddsPLS(Q2)"),
+    ordered = TRUE)
+```
+
+The following table shows the results of 100 replications with $p = 1000$ for each model type for the RMSE.
+
+```{r, echo=FALSE}
+reps_p %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  group_by(model) %>%
+  summarise(Mean = round(mean(rmse), 3),
+            "25th quantile" = round(quantile(rmse, 0.25), 3),
+            "50th quantile" = round(median(rmse), 3),
+            "75th quantile" = round(quantile(rmse, 0.75), 3),
+            Var = round(var(rmse), 4)) %>%
+  gt() %>%
+  cols_label(model = "Model")
+```
+
+From this chart we can see that with a large number of predictors uncorrelated to the responses, ddsPLS performs significantly better than the other methods in regards to the RMSE. While the mean RMSE of PLS is significantly lower than that of sPLS the two often offer models that perform similarly. Furthermore, note the higher variance of the RMSE for ddsPLS models. This is representative of the performance of ddsPLS in general as models tend to be more variable in their performance on the test data.
+
+```{r}
+reps_p %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = ncomp, fill = model)) +
+  geom_histogram(binwidth = 1) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  scale_x_continuous(n.breaks = 8) +
+  labs(x = "Number of Components",
+       y = "Count",
+       fill = "Model") +
+  theme_minimal() +
+  facet_wrap(vars(model))
+```
+
+When looking at the number of components built during the replications, we can see that ddsPLS is the only model that tends to build the correct number of components. As in previous trials, sPLS uses too few components while PLS builds too many.
+
+## Responses
+
+
+
+## ddsPLS Parameter Selection
+
+
+```{r, echo=FALSE}
+p_test %>%
+  filter(model %in% c("ddsPLS", "ddsPLS(Q2)")) %>%
+  ggplot(mapping = aes(x = p, y = R2.Q2, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                "ddsPLS(Q2)" = "tan4")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = unname(TeX("$R^2-Q^2$"))) +
+  theme_minimal()
+
+p_test %>%
+  filter(model %in% c("ddsPLS", "ddsPLS(Q2)")) %>%
+  ggplot(mapping = aes(x = p, y = rmse, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                "ddsPLS(Q2)" = "tan4")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = "RMSE") +
+  theme_minimal()
+```

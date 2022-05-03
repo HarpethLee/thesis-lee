@@ -1,0 +1,406 @@
+
+@book{hastie_elements_2009,
+	address = {New York, NY},
+	edition = {2nd ed},
+	series = {Springer series in statistics},
+	title = {The elements of statistical learning: data mining, inference, and prediction},
+	isbn = {978-0-387-84857-0 978-0-387-84858-7},
+	shorttitle = {The elements of statistical learning},
+	publisher = {Springer},
+	author = {Hastie, Trevor and Tibshirani, Robert and Friedman, J. H.},
+	year = {2009},
+	keywords = {Statistics, Bioinformatics, Computational intelligence, Data mining, Forecasting, Inference, Machine learning, Methodology},
+}
+
+@article{friedman_regularization_2010,
+	title = {Regularization {Paths} for {Generalized} {Linear} {Models} via {Coordinate} {Descent}},
+	volume = {33},
+	issn = {1548-7660},
+	url = {https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2929880/},
+	abstract = {We develop fast algorithms for estimation of generalized linear models with convex penalties. The models include linear regression, two-class logistic regression, and multinomial regression problems while the penalties include ℓ(1) (the lasso), ℓ(2) (ridge regression) and mixtures of the two (the elastic net). The algorithms use cyclical coordinate descent, computed along a regularization path. The methods can handle large problems and can also deal efficiently with sparse features. In comparative timings we find that the new algorithms are considerably faster than competing methods.},
+	language = {eng},
+	number = {1},
+	journal = {Journal of Statistical Software},
+	author = {Friedman, Jerome and Hastie, Trevor and Tibshirani, Rob},
+	year = {2010},
+	pmid = {20808728},
+	pmcid = {PMC2929880},
+	pages = {1--22},
+}
+
+@inproceedings{liu_globally_2013,
+	address = {New York, NY},
+	series = {Springer {Proceedings} in {Mathematics} \& {Statistics}},
+	title = {Globally {Sparse} {PLS} {Regression}},
+	isbn = {978-1-4614-8283-3},
+	doi = {10.1007/978-1-4614-8283-3_7},
+	abstract = {Partial least squares (PLS) regression combines dimensionality reduction and prediction using a latent variable model. It provides better predictive ability than principal component analysis by taking into account both the independent and response variables in the dimension reduction procedure. However, PLS suffers from over-fitting problems for few samples but many variables. We formulate a new criterion for sparse PLS by adding a structured sparsity constraint to the global SIMPLS optimization. The constraint is a sparsity-inducing norm, which is useful for selecting the important variables shared among all the components. The optimization is solved by an augmented Lagrangian method to obtain the PLS components and to perform variable selection simultaneously. We propose a novel greedy algorithm to overcome the computation difficulties. Experiments demonstrate that our approach to PLS regression attains better performance with fewer selected predictors.},
+	language = {en},
+	booktitle = {New {Perspectives} in {Partial} {Least} {Squares} and {Related} {Methods}},
+	publisher = {Springer},
+	author = {Liu, Tzu-Yu and Trinchera, Laura and Tenenhaus, Arthur and Wei, Dennis and Hero, Alfred O.},
+	editor = {Abdi, Herve and Chin, Wynne W. and Esposito Vinzi, Vincenzo and Russolillo, Giorgio and Trinchera, Laura},
+	year = {2013},
+	keywords = {Over-fitting, Principal component analysis, Regularization, Sparse PLS, Sparsity},
+	pages = {117--127},
+	file = {Springer Full Text PDF:/Users/johnlee/Zotero/storage/J2SAPTXS/Liu et al. - 2013 - Globally Sparse PLS Regression.pdf:application/pdf},
+}
+
+@article{chun_sparse_2010,
+	title = {Sparse partial least squares regression for simultaneous dimension reduction and variable selection},
+	volume = {72},
+	issn = {13697412, 14679868},
+	url = {https://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00723.x},
+	doi = {10.1111/j.1467-9868.2009.00723.x},
+	language = {en},
+	number = {1},
+	urldate = {2022-01-27},
+	journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+	author = {Chun, Hyonho and KeleÅ, SÃ¼ndÃ¼z},
+	month = jan,
+	year = {2010},
+	pages = {3--25},
+	file = {Full Text:/Users/johnlee/Zotero/storage/4X8IMA5S/Chun and KeleÅ - 2010 - Sparse partial least squares regression for simult.pdf:application/pdf},
+}
+
+@article{lorenzo_data-driven_nodate,
+	title = {Data-driven sparse partial least squares},
+	url = {https://onlinelibrary.wiley.com/doi/full/10.1002/sam.11558},
+	doi = {10.1002/sam.11558},
+	abstract = {In the supervised high dimensional settings with a large number of variables and a low number of individuals, variable selection allows a simpler interpretation and more reliable predictions. That subspace selection is often managed with supervised tools when the real question is motivated by variable prediction. We propose a partial least square (PLS) based method, called data-driven sparse PLS (ddsPLS), allowing variable selection both in the covariate and the response parts using a single hyperparameter per component. The subspace estimation is also performed by tuning a number of underlying parameters. The ddsPLS method is compared with existing methods such as classical PLS and two well established sparse PLS methods through numerical simulations. The observed results are promising both in terms of variable selection and prediction performance. This methodology is based on new prediction quality descriptors associated with the classical urn:x-wiley:19321864:media:sam11558:sam11558-math-0001 and urn:x-wiley:19321864:media:sam11558:sam11558-math-0002, and uses bootstrap sampling to tune parameters and select an optimal regression model.},
+	author = {Lorenzo, Hadrien and Saracco, Jerome and Rodolphe, Thiebaut},
+}
+
+@article{janitza_overestimation_2018,
+	title = {On the overestimation of random forest's out-of-bag error},
+	volume = {13},
+	issn = {1932-6203},
+	doi = {10.1371/journal.pone.0201904},
+	abstract = {The ensemble method random forests has become a popular classification tool in bioinformatics and related fields. The out-of-bag error is an error estimation technique often used to evaluate the accuracy of a random forest and to select appropriate values for tuning parameters, such as the number of candidate predictors that are randomly drawn for a split, referred to as mtry. However, for binary classification problems with metric predictors it has been shown that the out-of-bag error can overestimate the true prediction error depending on the choices of random forests parameters. Based on simulated and real data this paper aims to identify settings for which this overestimation is likely. It is, moreover, questionable whether the out-of-bag error can be used in classification tasks for selecting tuning parameters like mtry, because the overestimation is seen to depend on the parameter mtry. The simulation-based and real-data based studies with metric predictor variables performed in this paper show that the overestimation is largest in balanced settings and in settings with few observations, a large number of predictor variables, small correlations between predictors and weak effects. There was hardly any impact of the overestimation on tuning parameter selection. However, although the prediction performance of random forests was not substantially affected when using the out-of-bag error for tuning parameter selection in the present studies, one cannot be sure that this applies to all future data. For settings with metric predictor variables it is therefore strongly recommended to use stratified subsampling with sampling fractions that are proportional to the class sizes for both tuning parameter selection and error estimation in random forests. This yielded less biased estimates of the true prediction error. In unbalanced settings, in which there is a strong interest in predicting observations from the smaller classes well, sampling the same number of observations from each class is a promising alternative.},
+	language = {eng},
+	number = {8},
+	journal = {PloS One},
+	author = {Janitza, Silke and Hornung, Roman},
+	year = {2018},
+	pmid = {30080866},
+	pmcid = {PMC6078316},
+	keywords = {Algorithms, Computational Biology, Computer Simulation, Humans, Neoplasms},
+	pages = {e0201904},
+	file = {Full Text:/Users/johnlee/Zotero/storage/U3Q4N5VV/Janitza and Hornung - 2018 - On the overestimation of random forest's out-of-ba.pdf:application/pdf},
+}
+
+@article{cloarec_can_2014,
+	title = {Can we beat over-fitting?: {Can} we beat over-fitting?},
+	volume = {28},
+	issn = {08869383},
+	shorttitle = {Can we beat over-fitting?},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/cem.2602},
+	doi = {10.1002/cem.2602},
+	language = {en},
+	number = {8},
+	urldate = {2022-02-17},
+	journal = {Journal of Chemometrics},
+	author = {Cloarec, Olivier},
+	month = aug,
+	year = {2014},
+	pages = {610--614},
+}
+
+@article{sutton_sparse_2018,
+	title = {Sparse partial least squares with group and subgroup structure: {Sparse} partial least squares with group and subgroup structure},
+	volume = {37},
+	issn = {02776715},
+	shorttitle = {Sparse partial least squares with group and subgroup structure},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/sim.7821},
+	doi = {10.1002/sim.7821},
+	language = {en},
+	number = {23},
+	urldate = {2022-02-23},
+	journal = {Statistics in Medicine},
+	author = {Sutton, Matthew and Thiébaut, Rodolphe and Liquet, Benoît},
+	month = oct,
+	year = {2018},
+	pages = {3338--3356},
+}
+
+@article{hu_aspects_2022,
+	title = {Some aspects of response variable selection and estimation in multivariate linear regression},
+	volume = {188},
+	issn = {0047259X},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0047259X21000993},
+	doi = {10.1016/j.jmva.2021.104821},
+	language = {en},
+	urldate = {2022-02-24},
+	journal = {Journal of Multivariate Analysis},
+	author = {Hu, Jianhua and Liu, Xiaoqian and Liu, Xu and Xia, Ningning},
+	month = mar,
+	year = {2022},
+	pages = {104821},
+}
+
+@article{kalina_robust_2015,
+	title = {A {Robust} {Supervised} {Variable} {Selection} for {Noisy} {High}-{Dimensional} {Data}},
+	volume = {2015},
+	issn = {2314-6133, 2314-6141},
+	url = {http://www.hindawi.com/journals/bmri/2015/320385/},
+	doi = {10.1155/2015/320385},
+	abstract = {The Minimum Redundancy Maximum Relevance (MRMR) approach to supervised variable selection represents a successful methodology for dimensionality reduction, which is suitable for high-dimensional data observed in two or more different groups. Various available versions of the MRMR approach have been designed to search for variables with the largest relevance for a classification task while controlling for redundancy of the selected set of variables. However, usual relevance and redundancy criteria have the disadvantages of being too sensitive to the presence of outlying measurements and/or being inefficient. We propose a novel approach called Minimum Regularized Redundancy Maximum Robust Relevance (MRRMRR), suitable for noisy high-dimensional data observed in two groups. It combines principles of regularization and robust statistics. Particularly, redundancy is measured by a new regularized version of the coefficient of multiple correlation and relevance is measured by a highly robust correlation coefficient based on the least weighted squares regression with data-adaptive weights. We compare various dimensionality reduction methods on three real data sets. To investigate the influence of noise or outliers on the data, we perform the computations also for data artificially contaminated by severe noise of various forms. The experimental results confirm the robustness of the method with respect to outliers.},
+	language = {en},
+	urldate = {2022-03-02},
+	journal = {BioMed Research International},
+	author = {Kalina, Jan and Schlenker, Anna},
+	year = {2015},
+	pages = {1--10},
+	file = {Full Text:/Users/johnlee/Zotero/storage/9ECHT73W/Kalina and Schlenker - 2015 - A Robust Supervised Variable Selection for Noisy H.pdf:application/pdf},
+}
+
+@article{le_cao_sparse_2008,
+	title = {A {Sparse} {PLS} for {Variable} {Selection} when {Integrating} {Omics} {Data}},
+	volume = {7},
+	issn = {1544-6115},
+	url = {https://www.degruyter.com/document/doi/10.2202/1544-6115.1390/html},
+	doi = {10.2202/1544-6115.1390},
+	number = {1},
+	urldate = {2022-03-02},
+	journal = {Statistical Applications in Genetics and Molecular Biology},
+	author = {Lê Cao, Kim-Anh and Rossouw, Debra and Robert-Granié, Christèle and Besse, Philippe},
+	month = jan,
+	year = {2008},
+	file = {Submitted Version:/Users/johnlee/Zotero/storage/2BCEIC4E/Lê Cao et al. - 2008 - A Sparse PLS for Variable Selection when Integrati.pdf:application/pdf},
+}
+
+@article{manne_pls_2009,
+	title = {The {PLS} model space: the inconsistency persists},
+	volume = {23},
+	issn = {08869383, 1099128X},
+	shorttitle = {The {PLS} model space},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/cem.1181},
+	doi = {10.1002/cem.1181},
+	language = {en},
+	number = {2},
+	urldate = {2022-03-03},
+	journal = {Journal of Chemometrics},
+	author = {Manne, Rolf and Pell, Randy J. and Ramos, L. Scott},
+	month = feb,
+	year = {2009},
+	pages = {76--77},
+}
+
+@article{wold_pls_2009,
+	title = {The {PLS} model space revisited},
+	volume = {23},
+	issn = {08869383, 1099128X},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/cem.1171},
+	doi = {10.1002/cem.1171},
+	language = {en},
+	number = {2},
+	urldate = {2022-03-03},
+	journal = {Journal of Chemometrics},
+	author = {Wold, Svante and Høy, Martin and Martens, Harald and Trygg, Johan and Westad, Frank and MacGregor, John and Wise, Barry M.},
+	month = feb,
+	year = {2009},
+	pages = {67--68},
+}
+
+@article{wold_pls-regression_2001,
+	title = {{PLS}-regression: a basic tool of chemometrics},
+	volume = {58},
+	issn = {01697439},
+	shorttitle = {{PLS}-regression},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0169743901001551},
+	doi = {10.1016/S0169-7439(01)00155-1},
+	language = {en},
+	number = {2},
+	urldate = {2022-03-08},
+	journal = {Chemometrics and Intelligent Laboratory Systems},
+	author = {Wold, Svante and Sjöström, Michael and Eriksson, Lennart},
+	month = oct,
+	year = {2001},
+	pages = {109--130},
+}
+
+@article{tibshirani_regression_1995,
+	title = {Regression shrinkage and selection via the lasso},
+	volume = {58},
+	url = {https://www.jstor.org/stable/2346178?seq=1#metadata_info_tab_contents},
+	abstract = {We propose a new method for estimation in linear models. The 'lasso' minim residual sum of squares subject to the sum of the absolute value of the coefficients  than a constant. Because of the nature of this constraint it tends to produce coefficients that are exactly 0 and hence gives interpretable models. Our simulatio suggest that the lasso enjoys some of the favourable properties of both subset sele ridge regression. It produces interpretable models like subset selection and exh stability of ridge regression. There is also an interesting relationship with recent  adaptive function estimation by Donoho and Johnstone. The lasso idea is quite g can be applied in a variety of statistical models: extensions to generalized regressio and tree-based models are briefly described.},
+	number = {1},
+	journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+	author = {Tibshirani, Robert},
+	month = jan,
+	year = {1995},
+	pages = {267--288},
+}
+
+@article{johnstone_sparse_2004,
+	title = {Sparse {Principal} {Components} {Analysis}},
+	abstract = {Principal components analysis (PCA) is a classical method for the reduction of dimensionality of
+data in the form of n observations (or cases) of a vector with p variables. Contemporary data sets
+often have p comparable to, or even much larger than n. Our main assertions, in such settings, are
+(a) that some initial reduction in dimensionality is desirable before applying any PCA-type search
+for principal modes, and (b) the initial reduction in dimensionality is best achieved by working in
+a basis in which the signals have a sparse representation. We describe a simple asymptotic model
+in which the estimate of the leading principal component vector via standard PCA is consistent if
+and only if p(n)/n → 0. We provide a simple algorithm for selecting a subset of coordinates with
+largest sample variances, and show that if PCA is done on the selected subset, then consistency is
+recovered, even if p(n)  n.
+Our main setting is that of signals and images, in which the number of sampling points, or
+pixels, is often comparable with or larger than the number of cases, n. Our particular example here
+is the electrocardiogram (ECG) signal of the beating heart, but similar approaches have been used,
+say, for PCA on libraries of face images.
+Standard PCA involves an O(min(p3, n3)) search for directions of maximum variance. But if we
+have some a priori way of selecting k  min(n, p) coordinates in which most of the variation among
+cases is to be found, then the complexity of PCA is much reduced, to O(k3). This is a computational
+reason, but if there is instrumental or other observational noise in each case that is uncorrelated
+with or independent of relevant case-to-case variation, then there is another compelling reason to
+preselect a small subset of variables before running PCA.
+Indeed, we construct a model of factor analysis type and show that ordinary PCA can produce
+a consistent (as n → ∞) estimate of the principal factor if and only if p(n) is asymptotically of
+smaller order than n. Heuristically, if p(n) ≥ cn, there is so much observational noise and so many
+dimensions over which to search, that a spurious noise maximum will always drown out the true
+factor.
+Fortunately, it is often reasonable to expect such small subsets of variables to exist: Much recent
+research in signal and image analysis has sought orthonormal basis and related systems in which
+typical signals have sparse representations: most co-ordinates have small signal energies. If such a
+basis is used to represent a signal – we use wavelets as the classical example here – then the variation
+in many coordinates is likely to be very small.
+Consequently, we study a simple “sparse PCA” algorithm with the following ingredients: a)
+given a suitable orthobasis, compute coefficients for each case, b) compute sample variances (over
+cases) for each coordinate in the basis, and select the k coordinates of largest sample variance, c)
+run standard PCA on the selected k coordinates, obtaining up to k estimated eigenvectors, d) if
+desired, use soft or hard thresholding to denoise these estimated eigenvectors, and e) re-express the
+(denoised) sparse PCA eigenvector estimates in the original signal domain.
+We illustrate the algorithm on some exercise ECG data, and also develop theory to show in
+a single factor model, under an appropriate sparsity assumption, that it indeed overcomes the
+inconsistency problems when p(n) ≥ cn, and yields consistent estimates of the principal factor.},
+	author = {Johnstone, Iain M. and Yu Lu, Arthur},
+	month = jan,
+	year = {2004},
+}
+
+@article{chun_sparse_2007,
+	title = {Sparse {Partial} {Least} {Squares} {Regression} with an {Application} to {Genome} {Scale} {Transcription} {Factor} {Analysis}},
+	abstract = {Analysis of modern biological data often involves ill-posed problems due to high dimensionality and multicollinearity. Partial Least Squares (pls) regression has been an alternative to ordinary least squares for
+handling multicollinearity in several areas of scientific research since 1960s (Wold 1966). At the core of
+the pls methodology lies a dimension reduction technique coupled with a regression model. Although pls
+regression has been shown to achieve good predictive performance, it is not particularly tailored for variable/feature selection and therefore often produces linear combinations of the original predictors that are
+hard to interpret due to high dimensionality. In this paper, we investigate the known asymptotic properties
+of the pls estimator under special case of normality and show that its consistency breaks down with the very
+large p and small n paradigm. We, then, propose a sparse partial least squares (spls) formulation which
+aims to simultaneously achieve good predictive performance and variable selection by producing sparse linear
+combinations of the original predictors. We provide an efficient implementation of spls based on the lars
+algorithm (Efron et al. 2004). An additional advantage of the spls algorithm is that it naturally handles
+multivariate responses. We illustrate the methodology in a joint analysis of gene expression and genome-wide
+binding data.},
+	author = {Chun, Hyonho and Kele¸s∗, S¨und¨uz},
+	month = nov,
+	year = {2007},
+}
+
+@article{zou_regularization_nodate,
+	title = {Regularization and variable selection via the  elastic net},
+	volume = {67},
+	url = {https://www.jstor.org/stable/3647580},
+	abstract = {y. We propose the elastic net, a new regularization and variable selection method. Real
+ world data and a simulation study show that the elastic net often outperforms the lasso, while
+ enjoying a similar sparsity of representation. In addition, the elastic net encourages a grouping
+ effect, where strongly correlated predictors tend to be in or out of the model together. The elastic
+ net is particularly useful when the number of predictors (p) is much bigger than the number of
+ observations (n). By contrast, the lasso is not a very satisfactory variable selection method in the
+ p {\textgreater} n case. An algorithm called LARS-EN is proposed for computing elastic net regularization
+ paths efficiently, much like algorithm LARS does for th},
+	number = {2},
+	journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+	author = {Zou, Hui and Hastie, Trevor},
+	pages = {301--320},
+}
+
+@article{chun_sparse_2010-1,
+	title = {Sparse partial least squares regression for simultaneous dimension reduction and variable selection},
+	volume = {72},
+	issn = {13697412, 14679868},
+	url = {https://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00723.x},
+	doi = {10.1111/j.1467-9868.2009.00723.x},
+	language = {en},
+	number = {1},
+	urldate = {2022-03-10},
+	journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+	author = {Chun, Hyonho and KeleÅ, SÃ¼ndÃ¼z},
+	month = jan,
+	year = {2010},
+	pages = {3--25},
+	file = {Full Text:/Users/johnlee/Zotero/storage/DFQSSZ4K/Chun and KeleÅ - 2010 - Sparse partial least squares regression for simult.pdf:application/pdf},
+}
+
+@article{efron_bootstrap_1979,
+	title = {Bootstrap {Methods}: {Another} {Look} at the {Jackknife}},
+	volume = {7},
+	issn = {0090-5364},
+	shorttitle = {Bootstrap {Methods}},
+	url = {https://projecteuclid.org/journals/annals-of-statistics/volume-7/issue-1/Bootstrap-Methods-Another-Look-at-the-Jackknife/10.1214/aos/1176344552.full},
+	doi = {10.1214/aos/1176344552},
+	number = {1},
+	urldate = {2022-03-11},
+	journal = {The Annals of Statistics},
+	author = {Efron, B.},
+	month = jan,
+	year = {1979},
+	file = {Full Text:/Users/johnlee/Zotero/storage/2V5S945M/Efron - 1979 - Bootstrap Methods Another Look at the Jackknife.pdf:application/pdf},
+}
+
+@misc{kohavi_study_1995,
+	title = {A {Study} of {Cross}-{Validation} and {Bootstrap} for {Accuracy} {Estimation} and {Model} {Selection}},
+	abstract = {We review accuracy estimation methods and compare the two most common methods: crossvalidation and bootstrap. Recent experimental results on artificial data and theoretical results in restricted settings have shown that for
+selecting a good classifier from a set of classifers (model selection), ten-fold cross-validation
+may be better than the more expensive leaveone-out cross-validation. We report on a largescale experiment{\textbar}over half a million runs of
+C4.5 and a Naive-Bayes algorithm{\textbar}to estimate
+the eects of dierent parameters on these algorithms on real-world datasets. For crossvalidation, we vary the number of folds and
+whether the folds are stratied or not; for bootstrap, we vary the number of bootstrap samples. Our results indicate that for real-word
+datasets similar to ours, the best method to use for model selection is ten-fold stratied cross validation, even if computation power allows using more folds.},
+	author = {Kohavi, Ron},
+	year = {1995},
+}
+
+@article{stone_cross-validatory_1974,
+	title = {Cross-{Validatory} {Choice} and {Assessment} of {Statistical} {Predictions}},
+	volume = {36},
+	issn = {00359246},
+	url = {https://onlinelibrary.wiley.com/doi/10.1111/j.2517-6161.1974.tb00994.x},
+	doi = {10.1111/j.2517-6161.1974.tb00994.x},
+	language = {en},
+	number = {2},
+	urldate = {2022-03-14},
+	journal = {Journal of the Royal Statistical Society: Series B (Methodological)},
+	author = {Stone, M.},
+	month = jan,
+	year = {1974},
+	pages = {111--133},
+}
+
+@article{geisser_predictive_1974,
+	title = {A {Predictive} {Approach} to the {Random} {Effect} {Model}},
+	volume = {61},
+	url = {https://www.jstor.org/stable/2334290},
+	number = {1},
+	journal = {Biometrika},
+	author = {Geisser, Seymour},
+	month = apr,
+	year = {1974},
+	pages = {101--107},
+}
+
+@article{helland_comparison_1994,
+	title = {Comparison of {Prediction} {Methods} when {Only} a {Few} {Components} are {Relevant}},
+	volume = {89},
+	issn = {0162-1459, 1537-274X},
+	url = {https://www.tandfonline.com/doi/full/10.1080/01621459.1994.10476783},
+	doi = {10.1080/01621459.1994.10476783},
+	language = {en},
+	number = {426},
+	urldate = {2022-03-22},
+	journal = {Journal of the American Statistical Association},
+	author = {Helland, Inge S. and Almøy, Trygve},
+	month = jun,
+	year = {1994},
+	pages = {583--591},
+}

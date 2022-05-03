@@ -1,0 +1,524 @@
+---
+title: "Thesis Presentation"
+author: "Harpeth Lee"
+date: "2/24/2022"
+header includes: |
+  \usepackage{nicefrac}
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      countIncrementalSlides: false
+      navigation:
+        scroll: false
+---
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+
+style_xaringan(base_font_size = "27px",
+               text_color = "#515151",
+               background_color ="#CFEEFA",
+               title_slide_text_color = "#2b2b2b",
+               title_slide_background_color = "#CFEEFA",
+               text_font_google   = google_font("Roboto Serif", "400"),
+               header_h1_font_size = "2.25rem")
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(latex2exp)
+library(ggpmisc)
+library(gridExtra)
+library(dplyr)
+library(gt)
+```
+
+```{r, echo=FALSE}
+samp_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_noise_weight_1.csv")
+samp_test_spls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_noise_weight_1.csv")
+colnames(samp_test_spls) <- c("X", "noise_weight", "ncomp", "RMSE", "R2", "Q2", "R2.Q2")
+samp_test_pls <-read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_noise_weight_1.csv")
+
+samp_test_ddspls  <- samp_test_ddspls %>%
+  mutate(model = "ddsPLS")
+samp_test_spls <- samp_test_spls %>%
+  mutate(model = "sPLS")
+samp_test_pls <- samp_test_pls %>%
+  mutate(model = "PLS")
+
+samp_test <- rbind(samp_test_ddspls, samp_test_spls, samp_test_pls)
+
+samp_test$model <- factor(samp_test$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+```
+
+```{r, echo=FALSE, cache=TRUE}
+ddspls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_p_1000.csv")
+spls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_p_1000.csv")
+pls_1000_reps <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_p_1000.csv")
+ddspls_1000_reps_Q2 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_p_1000_Q2.csv")
+
+ddspls_1000_reps <- ddspls_1000_reps %>%
+  mutate(model = "ddsPLS")
+spls_1000_reps <- spls_1000_reps %>%
+  mutate(model = "sPLS")
+pls_1000_reps <- pls_1000_reps %>%
+  mutate(model = "PLS")
+ddspls_1000_reps_Q2 <- ddspls_1000_reps_Q2 %>%
+  mutate(model = "ddsPLS(Q2)")
+
+reps_p <- rbind(ddspls_1000_reps, spls_1000_reps, pls_1000_reps, ddspls_1000_reps_Q2)
+
+reps_p$model <- factor(reps_p$model,
+    levels = c("ddsPLS", "sPLS", "PLS", "ddsPLS(Q2)"),
+    ordered = TRUE)
+```
+
+```{r, echo = FALSE}
+p_test_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_ddspls.csv")
+p_test_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_spls.csv")
+p_test_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_pls.csv")
+p_test_ddspls_Q2 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/p_test_ddspls_Q2.csv")
+
+p_test_ddspls <- p_test_ddspls %>%
+  mutate(model = "ddsPLS")
+p_test_spls <- p_test_spls %>%
+  mutate(model = "sPLS")
+p_test_pls <- p_test_pls %>%
+  mutate(model = "PLS")
+p_test_ddspls_Q2 <- p_test_ddspls_Q2 %>%
+  mutate(model = "ddsPLS(Q2)")
+
+p_test <- rbind(p_test_ddspls, p_test_spls, p_test_pls, p_test_ddspls_Q2)
+
+p_test$model <- factor(p_test$model,
+    levels = c("ddsPLS", "sPLS", "PLS", "ddsPLS(Q2)"),
+    ordered = TRUE)
+```
+
+```{r, echo=FALSE}
+ddspls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_10.csv")
+spls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/spls_q_10.csv")
+pls_q_10 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/pls_q_10.csv")
+
+ddspls_q_10 <- ddspls_q_10 %>%
+  mutate(Model = "ddsPLS")
+spls_q_10 <- spls_q_10 %>%
+  mutate(Model = "sPLS")
+pls_q_10 <- pls_q_10 %>%
+  mutate(Model = "PLS")
+
+q_complex <- rbind(ddspls_q_10, spls_q_10, pls_q_10)
+
+q_complex$Model <- factor(q_complex$Model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+```
+
+```{r, echo=FALSE}
+noise_1_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_ddspls.csv")
+noise_1_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_spls.csv")
+noise_1_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_1_pls.csv")
+noise_0.5_ddspls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_ddspls.csv")
+noise_0.5_spls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_spls.csv")
+noise_0.5_pls <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/noise_0.5_pls.csv")
+
+noise_1_ddspls <- noise_1_ddspls %>%
+  mutate(model = "ddsPLS")
+noise_1_spls <- noise_1_spls %>%
+  mutate(model = "sPLS")
+noise_1_pls <- noise_1_pls %>%
+  mutate(model = "PLS")
+noise_0.5_ddspls <- noise_0.5_ddspls %>%
+  mutate(model = "ddsPLS")
+noise_0.5_spls <- noise_0.5_spls %>%
+  mutate(model = "sPLS")
+noise_0.5_pls <- noise_0.5_pls %>%
+  mutate(model = "PLS")
+
+noise_1 <- rbind(noise_1_ddspls, noise_1_spls, noise_1_pls)
+noise_0.5 <- rbind(noise_0.5_ddspls, noise_0.5_spls, noise_0.5_pls)
+
+noise_1$model <- factor(noise_1$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+
+noise_0.5$model <- factor(noise_0.5$model,
+    levels = c("ddsPLS", "sPLS", "PLS"),
+    ordered = TRUE)
+```
+
+# Regression
+
+ - Regression refers to a variety of statistical methods that use known variables to predict the value of unknown variables.
+ 
+ - A typical regression question would be "Can we predict how much a house will sell for based on its size, location, and other features of the house?"
+ 
+ - Building regression models isn't just used to make predictions, it is also used to learn more about the relationship between variables included in the model.
+ 
+---
+
+# Linear Regression
+
+- Linear regression is a commonly used regression method that assumes a linear relationship between predictors and responses.
+
+- Models built using linear regression will take the form $\hat{y} = \beta_0 + \beta_1x_1 + ... + \beta_n x_n$. This equation predicts that when $x_i$ increases by 1, $\hat{y}$ will increase by $\beta_i$.
+
+---
+# Linear Regression
+
+```{r, echo=FALSE, warning=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+suppressMessages(library(MASS))
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggpmisc))
+
+rand_data <- mvrnorm(n = 40, mu = c(4,1),
+                     Sigma = matrix(c(8, 5, 5, 4),
+                                    nrow = 2))
+
+rand_data <- as.data.frame(rand_data)
+
+ggplot(data = rand_data, aes(x = V1, y = V2)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              color = "red") +
+  labs(x = "X",
+       y = "Y") +
+   stat_poly_eq(formula = y~x, 
+                aes(label = paste(..eq.label..)), 
+                parse = TRUE) +
+  theme_minimal()
+```
+ 
+---
+# Curse of Dimensionality
+
+- The curse of dimensionality is a term used to refer to issues that arise due to the size of the feature space.
+
+- Higher dimensional data will feature more noise and makes it harder to identify meaningful relations in the data.
+
+- One way that these problems are dealt with is moving the data into a simpler feature space while trying to keep as much of the information in the data as possible.
+
+---
+
+# Principal Component Analysis
+
+- Principal component analysis (PCA) is a method used to find the directions along which a set of data varies the most.
+
+- PCA is designed to present a data set in a much simpler form while losing as little of the variance in the original data as possible.
+
+- PCA is commonly used to analyze and simplify high dimensional data as it can reduce it to a much lower dimension that is easier to work with.
+
+
+---
+# Principal Component Analysis
+
+```{r, echo=FALSE, cache=TRUE, warning=FALSE, fig.align='center', fig.height=6}
+library(MASS)
+library(ggplot2)
+
+rand_data <- mvrnorm(n = 50, mu = c(4,1), Sigma = matrix(c(8, 5, 5, 5), nrow = 2))
+
+rand_data <- as.data.frame(scale(rand_data))
+
+pca_data <- prcomp(rand_data, scale. = TRUE)
+
+ggplot(rand_data, aes(x = V1, y = V2)) +
+  geom_point() +
+  geom_abline(slope = pca_data$rotation[1,1]/pca_data$rotation[2,1],
+              intercept = 0,
+              color = "red") +
+  geom_abline(slope = pca_data$rotation[1,2]/pca_data$rotation[2,2],
+              intercept = 0,
+              color = "blue") +
+  labs(x = "X",
+       y = "Y") +
+  theme_minimal()
+```
+ 
+ 
+---
+# Partial Least Squares
+
+- Partial least squares (PLS) is a regression method with similarities to PCA.
+
+ - Unlike PCA, PLS is only used for regression. Instead of finding the directions that explain the most of the variance in the data, PLS finds the directions that explain the most of the correlation between the predictors and responses.
+ 
+ - PLS is used to work with high dimensional data that would present problems to most traditional regression methods. One of these is when the number of predictors is larger than the sample size ($n > p$).
+ 
+ 
+---
+
+# Sparse Partial Least Squares
+
+- Sparse partial least squares is an extension of PLS designed to further help with problems with high dimensional data.
+
+- When given a large number of predictors, it is common for some of them to be weakly correlated or uncorrelated with the responses.
+
+- sPLS penalizes these weakly correlated predictors by lessening their impact on the model. sPLS also performs variable selection as it will remove some of these predictors from the final model if they are shown to have low enough correlation.
+
+---
+# Data-driven Sparse Partial Least Squares
+
+- Data-driven sparse partial least squares (ddsPLS) is a recently proposed  sparse PLS method.
+
+- Unlike existing methods, ddsPLS directly penalizes the empirical covariance matrix. This leads to sparsity among predictors and responses.
+
+- One of the goals of ddsPLS is to accurately reflect the underlying structure of the data. Unlike similar methods it uses $R^2-Q^2$ for parameter selection.
+
+---
+
+# Simulation Structure
+
+Data is simulated using the following equations
+
+- $\textbf{X} = \boldsymbol{\phi} \textbf{A} + \boldsymbol{\epsilon}_X$
+- $\textbf{Y} = \boldsymbol{\phi} \textbf{D} + \boldsymbol{\epsilon}_Y$
+
+$\boldsymbol{\epsilon}_X$ and $\boldsymbol{\epsilon}_Y$ are randomly generated noise. ddsPLS assumes that data shares a structure similar to this method.
+
+---
+# Noise
+
+```{r, echo=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+R2_plot <- ggplot(samp_test, aes(x = noise_weight, y = R2, color = model)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)")),
+       y = unname(TeX("$R^2$"))) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+Q2_plot <- ggplot(samp_test, aes(x = noise_weight, y = Q2, color = model)) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = unname(TeX("Noise Weight ($\\omega$)")),
+       y = unname(TeX("$Q^2$")),
+       color = "Model") +
+  theme_minimal()
+
+
+grid.arrange(R2_plot, Q2_plot, nrow = 1, widths = c(1.25, 1.8))
+```
+
+
+---
+# Noise
+
+At $\omega = 0.5$
+
+```{r, echo=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+noise_0.5 %>%
+  group_by(model) %>%
+  ggplot(aes(x = ncomp, fill = model)) +
+  annotate("segment",
+           x = 2, y = 0,
+           xend = 2, yend = 100,
+           color = "gold3",
+           size = 10,
+           alpha = 0.25) +
+  geom_histogram(binwidth = 1) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = "Number of Components",
+       y = "Count",
+       fill = "Model",
+       caption = "Gold bar is the desired number of components")+
+  theme_minimal() +
+  facet_wrap(vars(model)) +
+  theme(legend.position = "none")
+```
+
+---
+# Noise
+
+```{r, echo=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+noise_0.5 %>%
+  group_by(model) %>%
+  ggplot(aes(x = model, y = RMSE, color = model)) +
+  geom_boxplot() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = "Model",
+       color = "Model") +
+  theme_minimal()
+```
+
+---
+
+# Predictors
+
+```{r, echo=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+p_test %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = p, y = rmse, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = "RMSE") +
+  theme_minimal()
+```
+
+---
+
+# Predictors
+
+```{r, echo=FALSE, cache=TRUE, fig.align='center', fig.height=6}
+p_test %>%
+  filter(model != "ddsPLS(Q2)") %>%
+  ggplot(mapping = aes(x = p, y = R2.Q2, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = unname(TeX("$R^2-Q^2$"))) +
+  theme_minimal()
+```
+
+---
+
+# Responses
+
+```{r, echo=FALSE, fig.align='center', fig.height=6}
+q_complex %>%
+  ggplot(aes(x = R2, y = Q2, color = Model)) +
+  geom_abline(slope = 1, intercept = 0, size = 0.5) +
+  geom_point(alpha = 0.6) +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = unname(TeX("$R^2$")),
+       y = unname(TeX("$Q^2$")),
+       caption = unname(TeX("Black line is along $R^2=Q^2$"))) +
+  theme_minimal()
+```
+
+---
+
+# Responses 
+
+```{r, echo=FALSE, fig.align='center', fig.height=6}
+ggplot(q_complex, aes(x = RMSE, fill = Model)) +
+  geom_histogram(binwidth = 0.05, position = "identity", alpha = 0.5) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(y = "Count") +
+  theme_minimal()
+```
+
+---
+
+# Responses
+
+```{r, echo=FALSE, fig.align='center', fig.height=6}
+ggplot(q_complex, aes(x = ncomp, fill = Model)) +
+  annotate("segment",
+           x = 4, y = 0,
+           xend = 4, yend = 100,
+           color = "gold3",
+           size = 6,
+           alpha = 0.25) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:8)+
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                sPLS = "tomato2",
+                                PLS = "darkolivegreen3")) +
+  labs(x = "Number of Components",
+       y = "Count",
+       caption = "Gold bar is the desired distribution of components") +
+  theme_minimal() +
+  facet_wrap(vars(Model)) +
+  theme(legend.position = "none")
+```
+
+---
+
+# Parameter Selection
+
+```{r, echo=FALSE, fig.align='center', fig.height=6}
+p_test %>%
+  filter(model %in% c("ddsPLS", "ddsPLS(Q2)")) %>%
+  ggplot(mapping = aes(x = p, y = R2.Q2, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                "ddsPLS(Q2)" = "tan4")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = unname(TeX("$R^2-Q^2$"))) +
+  theme_minimal()
+```
+
+
+---
+
+# Parameter Selection
+
+```{r, fig.align='center', fig.height=6, echo=FALSE}
+p_test %>%
+  filter(model %in% c("ddsPLS", "ddsPLS(Q2)")) %>%
+  ggplot(mapping = aes(x = p, y = rmse, color = model)) +
+  geom_point() +
+  scale_color_manual(values = c(ddsPLS = "turquoise3",
+                                "ddsPLS(Q2)" = "tan4")) +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE,
+              size = 0.75) +
+  labs(x = unname(TeX("$p$")),
+       y = "RMSE") +
+  theme_minimal()
+```
+
+
+---
+
+# Parameter Selection
+
+```{r, echo=FALSE, fig.align='center', fig.height=6}
+reps_p %>%
+  filter(model %in% c("ddsPLS", "ddsPLS(Q2)")) %>%
+  group_by(model) %>%
+  ggplot(aes(x = ncomp, fill = model)) +
+  annotate("segment",
+           x = 2, y = 0,
+           xend = 2, yend = 100,
+           color = "gold3",
+           size = 18,
+           alpha = 0.25) +
+  geom_histogram(binwidth = 1) +
+  scale_fill_manual(values = c(ddsPLS = "turquoise3",
+                                "ddsPLS(Q2)" = "tan4")) +
+  labs(x = "Number of Components",
+       y = "Count",
+       caption = "Gold bar is the desired number of components") +
+  theme_minimal() +
+  facet_wrap(vars(model)) +
+  theme(legend.position = "none")
+```

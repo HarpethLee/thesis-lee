@@ -543,7 +543,7 @@ ggplot(data = pls.p.reps, aes(x = ncomp)) +
 ## New Simulation Response Test
 
 ```{r q Simulation Function}
-q_eval <- function(q, noise_weight = 0.5, n = 150, p = 100,func = "ddsPLS", struc = "simple", D_method = "simple"){
+q_eval <- function(q, noise_weight = 0.5, n = 150, p = 100,func = "ddsPLS", struc = "simple", D_method = "simple", criterion = "diffR2Q2"){
    
   ## Note that if D_method != "simple" there are lower bounds on the value of q
   
@@ -551,7 +551,7 @@ q_eval <- function(q, noise_weight = 0.5, n = 150, p = 100,func = "ddsPLS", stru
    sim <- sim_data(n = n, p = p, q = q, noise_weight = noise_weight, noise_type = "rnorm", struc = struc, D_method = D_method)
    
    # Passes Data to test function
-   pls_test(n = n, sim = sim, func = func, passed_arg = q)
+   pls_test(n = n, sim = sim, func = func, passed_arg = q, criterion = criterion)
 }
 ```
 
@@ -612,6 +612,11 @@ spls.q.reps <- replicate(100, q_eval(q = 25, func = "spls"))
 ```{r, eval=FALSE, warning=FALSE}
 pls.q.reps <- replicate(100, q_eval(q = 25, func = "pls"))
 ```
+
+```{r}
+ddspls_Q2.q.reps <- replicate(100, q_eval(q = 25, criterion = "Q2"))
+```
+
 
 ```{r}
 ddspls_q_25 <- read.csv2("/Users/johnlee/R Files/thesis-lee/Simulations/data/ddspls_q_25.csv")
